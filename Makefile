@@ -5,7 +5,7 @@
 
 VENV = .venv
 PYTHON = $(VENV)/bin/python
-PIP = $(VENV)/bin/pip
+UV = uv
 
 # Project structure
 DATA_DIR = data
@@ -14,13 +14,30 @@ PROCESSED_DATA_DIR = $(DATA_DIR)/processed
 SRC_DIR = src
 MODELS_DIR = models
 
-install: ## Create venv and install dependencies
-	@echo "Creating virtual environment and installing dependencies..."
+install: ## Create venv and install dependencies with uv
+	@echo "Creating virtual environment and installing dependencies with uv..."
+	@if ! command -v $(UV) >/dev/null 2>&1; then \
+		echo "uv not found. Installing uv first..."; \
+		curl -LsSf https://astral.sh/uv/install.sh | sh; \
+		export PATH="$$HOME/.cargo/bin:$$PATH"; \
+	fi
+	@if [ -d "$(VENV)" ]; then rm -rf $(VENV); fi
+	@$(UV) venv $(VENV)
+	@echo "Installing packages from requirements.txt..."
+	@$(UV) pip install -r requirements.txt
+
+install-pip: ## Fallback: Create venv and install dependencies with pip
+	@echo "Creating virtual environment and installing dependencies with pip..."
 	@if [ -d "$(VENV)" ]; then rm -rf $(VENV); fi
 	@python3 -m venv $(VENV)
 	@echo "Installing packages from requirements.txt..."
-	@$(PIP) install --upgrade pip
-	@$(PIP) install -r requirements.txt
+	@$(VENV)/bin/pip install --upgrade pip
+	@$(VENV)/bin/pip install -r requirements.txt
+
+install-uv: ## Install uv package manager
+	@echo "Installing uv package manager..."
+	@curl -LsSf https://astral.sh/uv/install.sh | sh
+	@echo "uv installed! You may need to restart your shell or run: source ~/.cargo/env"
 
 check: ## Run code quality checks
 	@echo "Linting with Ruff..."
@@ -85,4 +102,4 @@ help: ## Show available Make targets
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Targets:"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m                    \033[0m \n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
