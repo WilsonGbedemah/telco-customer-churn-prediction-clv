@@ -444,6 +444,18 @@ st.markdown("""
     box-shadow: 0 4px 8px rgba(132, 250, 176, 0.3);
 }
 
+/* Tab 5 - CLV Overview (Teal) */
+.stTabs [data-baseweb="tab-list"] button:nth-child(5) {
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    color: white;
+    border-color: #4db6ac;
+}
+
+.stTabs [data-baseweb="tab-list"] button:nth-child(4):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(132, 250, 176, 0.3);
+}
+
 /* Active tab styling */
 .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
     border-width: 3px;
