@@ -1118,6 +1118,9 @@ with tabs[2]:
         st.session_state['base_prob'] = base_prob
         st.session_state['base_clv'] = base_clv
         st.session_state['base_input'] = base_input
+        st.session_state['scenario_model'] = scenario_model  # Store the model name
+        st.session_state['base_contract'] = base_contract    # Store contract type
+        st.session_state['base_tech_support'] = base_tech_support  # Store tech support
     
     if 'base_prob' in st.session_state:
         st.markdown("### 📊 Base Scenario Results")
@@ -1131,13 +1134,17 @@ with tabs[2]:
         st.subheader("🎯 Scenario Testing")
         st.markdown("Test different interventions and see their impact:")
         
+        # Get the model for scenario testing
+        model_name_map = {'Logistic Regression': 'logisticregression', 'Random Forest': 'randomforest', 'XGBoost': 'xgboost'}
+        model = models[model_name_map[st.session_state['scenario_model']]]
+        
         scenarios = []
         scenario_names = []
         
         # Scenario 1: Contract Upgrade
         if st.checkbox("📋 Scenario: Upgrade to Annual Contract"):
             scenario1_input = st.session_state['base_input'].copy()
-            scenario1_input[f'Contract_{base_contract}'] = 0
+            scenario1_input[f'Contract_{st.session_state["base_contract"]}'] = 0
             scenario1_input['Contract_One year'] = 1
             
             scenario1_prob = model.predict_proba(scenario1_input[X_test.columns])[:, 1][0]
@@ -1147,7 +1154,7 @@ with tabs[2]:
         # Scenario 2: Add Tech Support  
         if st.checkbox("🛠️ Scenario: Add Tech Support"):
             scenario2_input = st.session_state['base_input'].copy()
-            scenario2_input[f'TechSupport_{base_tech_support}'] = 0
+            scenario2_input[f'TechSupport_{st.session_state["base_tech_support"]}'] = 0
             scenario2_input['TechSupport_Yes'] = 1
             
             scenario2_prob = model.predict_proba(scenario2_input[X_test.columns])[:, 1][0]
@@ -1158,7 +1165,9 @@ with tabs[2]:
         discount_pct = st.slider("💰 Scenario: Apply Discount (%)", 0, 50, 15)
         if discount_pct > 0:
             scenario3_input = st.session_state['base_input'].copy()
-            discounted_charges = base_charges * (1 - discount_pct/100)
+            # Get original charges from the stored input
+            original_charges = st.session_state['base_input']['MonthlyCharges'].iloc[0]
+            discounted_charges = original_charges * (1 - discount_pct/100)
             scenario3_input['MonthlyCharges'] = discounted_charges
             
             scenario3_prob = model.predict_proba(scenario3_input[X_test.columns])[:, 1][0]
