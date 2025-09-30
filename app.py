@@ -174,8 +174,6 @@ def get_retention_strategy(churn_prob, clv, customer_data):
 
 
 
-
-
 def _show_feature_importance_local(model, input_df, model_name, churn_prob):
     """Show local feature importance explanation for a prediction."""
     try:
@@ -390,7 +388,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-tabs = st.tabs(["🎯 Churn Prediction", "� Model Performance", "💰 CLV Overview"])
+tabs = st.tabs(["🎯 Churn Prediction", "📊 Model Performance", "💰 CLV Overview"])
 
 # --- Predict Tab ---
 with tabs[0]:
