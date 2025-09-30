@@ -420,38 +420,26 @@ st.markdown("""
     box-shadow: 0 4px 8px rgba(17, 153, 142, 0.3);
 }
 
-/* Tab 3 - What-If Analysis (Orange) */
+/* Tab 3 - Model Performance (Purple) */
 .stTabs [data-baseweb="tab-list"] button:nth-child(3) {
-    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-    color: white;
-    border-color: #ff8a8e;
-}
-
-.stTabs [data-baseweb="tab-list"] button:nth-child(3):hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(255, 154, 158, 0.3);
-}
-
-/* Tab 4 - Model Performance (Purple) */
-.stTabs [data-baseweb="tab-list"] button:nth-child(4) {
     background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
     color: white;
     border-color: #9575cd;
 }
 
-.stTabs [data-baseweb="tab-list"] button:nth-child(4):hover {
+.stTabs [data-baseweb="tab-list"] button:nth-child(3):hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(161, 140, 209, 0.3);
 }
 
-/* Tab 5 - CLV Overview (Teal) */
-.stTabs [data-baseweb="tab-list"] button:nth-child(5) {
+/* Tab 4 - CLV Overview (Teal) */
+.stTabs [data-baseweb="tab-list"] button:nth-child(4) {
     background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
     color: white;
     border-color: #4db6ac;
 }
 
-.stTabs [data-baseweb="tab-list"] button:nth-child(5):hover {
+.stTabs [data-baseweb="tab-list"] button:nth-child(4):hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(132, 250, 176, 0.3);
 }
@@ -464,7 +452,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-tabs = st.tabs(["🎯 Churn Prediction", "📊 Batch Analysis", "🔍 What-If Analysis", "📈 Model Performance", "💰 CLV Overview"])
+tabs = st.tabs(["🎯 Churn Prediction", "📊 Batch Analysis", " Model Performance", "💰 CLV Overview"])
 
 # --- Predict Tab ---
 with tabs[0]:
@@ -1079,131 +1067,8 @@ with tabs[1]:
                 st.error(f"Error processing file: {str(e)}")
                 st.info("Please ensure your CSV file matches the required format. Download the sample template for reference.")
 
-# --- What-If Analysis Tab ---
-with tabs[2]:
-    st.header("🔍 What-If Scenario Analysis")
-    st.markdown("Explore how different changes affect customer churn probability and test retention strategies.")
-    
-    # Base customer profile
-    st.subheader("👤 Base Customer Profile")
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        base_tenure = st.number_input("Base Tenure (months)", 0, 72, 12, key="base_tenure")
-        base_charges = st.number_input("Base Monthly Charges ($)", 18.0, 120.0, 70.0, key="base_charges")
-    with col2:
-        base_contract = st.selectbox("Base Contract", ['Month-to-month', 'One year', 'Two year'], key="base_contract")
-        base_internet = st.selectbox("Base Internet Service", ['DSL', 'Fiber optic', 'No'], key="base_internet")
-    with col3:
-        base_tech_support = st.selectbox("Base Tech Support", ['No', 'Yes', 'No internet service'], key="base_tech")
-        scenario_model = st.selectbox("Model", ['Logistic Regression', 'Random Forest', 'XGBoost'], key="scenario")
-    
-    # Calculate base prediction
-    if st.button("🔮 Calculate Base Scenario", key="base_calc"):
-        # Create base input
-        base_input = pd.DataFrame(columns=X_test.columns)
-        base_input.loc[0] = 0
-        base_input['tenure'] = base_tenure
-        base_input['MonthlyCharges'] = base_charges
-        base_input[f'Contract_{base_contract}'] = 1
-        base_input[f'InternetService_{base_internet}'] = 1
-        base_input[f'TechSupport_{base_tech_support}'] = 1
-        
-        model_name_map = {'Logistic Regression': 'logisticregression', 'Random Forest': 'randomforest', 'XGBoost': 'xgboost'}
-        model = models[model_name_map[scenario_model]]
-        
-        base_prob = model.predict_proba(base_input[X_test.columns])[:, 1][0]
-        base_clv = base_charges * avg_tenure
-        
-        st.session_state['base_prob'] = base_prob
-        st.session_state['base_clv'] = base_clv
-        st.session_state['base_input'] = base_input
-        st.session_state['stored_scenario_model'] = scenario_model  # Store the model name
-        st.session_state['stored_base_contract'] = base_contract    # Store contract type
-        st.session_state['stored_base_tech_support'] = base_tech_support  # Store tech support
-    
-    if 'base_prob' in st.session_state:
-        st.markdown("### 📊 Base Scenario Results")
-        col_base1, col_base2 = st.columns(2)
-        with col_base1:
-            st.metric("Base Churn Probability", f"{st.session_state['base_prob']:.1%}")
-        with col_base2:
-            st.metric("Base CLV", f"${st.session_state['base_clv']:,.2f}")
-        
-        st.markdown("---")
-        st.subheader("🎯 Scenario Testing")
-        st.markdown("Test different interventions and see their impact:")
-        
-        # Get the model for scenario testing
-        model_name_map = {'Logistic Regression': 'logisticregression', 'Random Forest': 'randomforest', 'XGBoost': 'xgboost'}
-        model = models[model_name_map[st.session_state['stored_scenario_model']]]
-        
-        scenarios = []
-        scenario_names = []
-        
-        # Scenario 1: Contract Upgrade
-        if st.checkbox("📋 Scenario: Upgrade to Annual Contract"):
-            scenario1_input = st.session_state['base_input'].copy()
-            scenario1_input[f'Contract_{st.session_state["stored_base_contract"]}'] = 0
-            scenario1_input['Contract_One year'] = 1
-            
-            scenario1_prob = model.predict_proba(scenario1_input[X_test.columns])[:, 1][0]
-            scenarios.append(scenario1_prob)
-            scenario_names.append("Annual Contract")
-        
-        # Scenario 2: Add Tech Support  
-        if st.checkbox("🛠️ Scenario: Add Tech Support"):
-            scenario2_input = st.session_state['base_input'].copy()
-            scenario2_input[f'TechSupport_{st.session_state["stored_base_tech_support"]}'] = 0
-            scenario2_input['TechSupport_Yes'] = 1
-            
-            scenario2_prob = model.predict_proba(scenario2_input[X_test.columns])[:, 1][0]
-            scenarios.append(scenario2_prob)
-            scenario_names.append("With Tech Support")
-        
-        # Scenario 3: Discount
-        discount_pct = st.slider("💰 Scenario: Apply Discount (%)", 0, 50, 15)
-        if discount_pct > 0:
-            scenario3_input = st.session_state['base_input'].copy()
-            # Get original charges from the stored input
-            original_charges = st.session_state['base_input']['MonthlyCharges'].iloc[0]
-            discounted_charges = original_charges * (1 - discount_pct/100)
-            scenario3_input['MonthlyCharges'] = discounted_charges
-            
-            scenario3_prob = model.predict_proba(scenario3_input[X_test.columns])[:, 1][0]
-            scenarios.append(scenario3_prob)
-            scenario_names.append(f"{discount_pct}% Discount")
-        
-        # Display comparison
-        if scenarios:
-            st.markdown("### 📈 Scenario Comparison")
-            comparison_data = {
-                'Scenario': ['Base'] + scenario_names,
-                'Churn Probability': [st.session_state['base_prob']] + scenarios,
-                'Risk Reduction': [0] + [st.session_state['base_prob'] - prob for prob in scenarios]
-            }
-            comparison_df = pd.DataFrame(comparison_data)
-            comparison_df['Risk Reduction %'] = (comparison_df['Risk Reduction'] / st.session_state['base_prob'] * 100).round(1)
-            
-            st.dataframe(comparison_df.round(3), width='stretch')
-            
-            # Visualization
-            fig_scenarios, ax_scenarios = plt.subplots(figsize=(10, 5))
-            colors = ['red'] + ['green' if prob < st.session_state['base_prob'] else 'orange' for prob in scenarios]
-            bars = ax_scenarios.bar(comparison_df['Scenario'], comparison_df['Churn Probability'], color=colors, alpha=0.7)
-            ax_scenarios.set_ylabel('Churn Probability')
-            ax_scenarios.set_title('Scenario Impact Analysis')
-            ax_scenarios.tick_params(axis='x', rotation=45)
-            
-            # Add value labels on bars
-            for bar, prob in zip(bars, comparison_df['Churn Probability']):
-                ax_scenarios.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01, 
-                                f'{prob:.1%}', ha='center', va='bottom')
-            
-            plt.tight_layout()
-            st.pyplot(fig_scenarios)
 # --- Model Performance Tab ---
-with tabs[3]:
+with tabs[2]:
     st.header("Model Performance Evaluation")
     st.markdown("Compare model performance and analyze feature importance and discrimination ability.")
     
@@ -1372,7 +1237,7 @@ with tabs[3]:
             st.metric("Recall", f"{metrics['Recall']:.3f}")
 
 # --- CLV Overview Tab ---
-with tabs[4]:
+with tabs[3]:
     st.header("💰 Customer Lifetime Value (CLV) Analysis")
     st.markdown("Understand customer segments based on their lifetime value and churn behavior.")
     
