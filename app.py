@@ -1,7 +1,6 @@
 # Standard library imports
 import os
 import sys
-import io
 import time
 
 # Third-party imports
@@ -173,58 +172,9 @@ def get_retention_strategy(churn_prob, clv, customer_data):
     
     return strategies
 
-def create_risk_value_plot(predictions_df):
-    """Create interactive scatter plot of churn risk vs CLV."""
-    fig, ax = plt.subplots(figsize=(10, 6))
-    
-    scatter = ax.scatter(predictions_df['CLV'], predictions_df['Churn_Probability'], 
-                        c=predictions_df['Churn_Probability'], cmap='RdYlGn_r',
-                        alpha=0.6, s=60)
-    
-    ax.set_xlabel('Customer Lifetime Value ($)')
-    ax.set_ylabel('Churn Probability')
-    ax.set_title('Customer Risk-Value Matrix')
-    
-    # Add quadrant labels
-    ax.axhline(y=0.5, color='gray', linestyle='--', alpha=0.5)
-    ax.axvline(x=predictions_df['CLV'].median(), color='gray', linestyle='--', alpha=0.5)
-    
-    plt.colorbar(scatter, label='Churn Risk')
-    return fig
 
-def process_batch_predictions(df, model, avg_tenure):
-    """Process batch predictions for uploaded CSV."""
-    results = []
-    
-    for idx, row in df.iterrows():
-        # Create input dataframe with proper encoding
-        input_df = pd.DataFrame(columns=X_test.columns)
-        input_df.loc[0] = 0
-        
-        # Map the uploaded data to the model features
-        for col in df.columns:
-            if col in input_df.columns:
-                input_df[col] = row[col]
-            elif f'Contract_{row.get("Contract", "")}' in input_df.columns:
-                input_df[f'Contract_{row["Contract"]}'] = 1
-            elif f'InternetService_{row.get("InternetService", "")}' in input_df.columns:
-                input_df[f'InternetService_{row["InternetService"]}'] = 1
-        
-        churn_prob = model.predict_proba(input_df[X_test.columns])[:, 1][0]
-        clv = row.get('MonthlyCharges', 70) * avg_tenure
-        segment, _ = get_customer_segment(churn_prob, clv)
-        
-        results.append({
-            'Customer_ID': row.get('customerID', f'Customer_{idx+1}'),
-            'Churn_Probability': churn_prob,
-            'Risk_Level': 'High' if churn_prob >= 0.5 else 'Medium' if churn_prob >= 0.3 else 'Low',
-            'CLV': clv,
-            'Segment': segment,
-            'Monthly_Charges': row.get('MonthlyCharges', 70),
-            'Tenure': row.get('tenure', 12)
-        })
-    
-    return pd.DataFrame(results)
+
+
 
 def _show_feature_importance_local(model, input_df, model_name, churn_prob):
     """Show local feature importance explanation for a prediction."""
@@ -408,50 +358,26 @@ st.markdown("""
     box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
 }
 
-/* Tab 2 - Batch Analysis (Green) */
+/* Tab 2 - Model Performance (Purple) */
 .stTabs [data-baseweb="tab-list"] button:nth-child(2) {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    color: white;
-    border-color: #0f8a7e;
-}
-
-.stTabs [data-baseweb="tab-list"] button:nth-child(2):hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(17, 153, 142, 0.3);
-}
-
-/* Tab 3 - Model Performance (Purple) */
-.stTabs [data-baseweb="tab-list"] button:nth-child(3) {
     background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
     color: white;
     border-color: #9575cd;
 }
 
-.stTabs [data-baseweb="tab-list"] button:nth-child(3):hover {
+.stTabs [data-baseweb="tab-list"] button:nth-child(2):hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(161, 140, 209, 0.3);
 }
 
-/* Tab 4 - CLV Overview (Teal) */
-.stTabs [data-baseweb="tab-list"] button:nth-child(4) {
+/* Tab 3 - CLV Overview (Teal) */
+.stTabs [data-baseweb="tab-list"] button:nth-child(3) {
     background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
     color: white;
     border-color: #4db6ac;
 }
 
-.stTabs [data-baseweb="tab-list"] button:nth-child(4):hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(132, 250, 176, 0.3);
-}
-
-/* Tab 5 - CLV Overview (Teal) */
-.stTabs [data-baseweb="tab-list"] button:nth-child(5) {
-    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-    color: white;
-    border-color: #4db6ac;
-}
-
-.stTabs [data-baseweb="tab-list"] button:nth-child(4):hover {
+.stTabs [data-baseweb="tab-list"] button:nth-child(3):hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(132, 250, 176, 0.3);
 }
@@ -464,7 +390,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-tabs = st.tabs(["🎯 Churn Prediction", "📊 Batch Analysis", " Model Performance", "💰 CLV Overview"])
+tabs = st.tabs(["🎯 Churn Prediction", "� Model Performance", "💰 CLV Overview"])
 
 # --- Predict Tab ---
 with tabs[0]:
@@ -960,127 +886,8 @@ with tabs[0]:
         else:
             st.warning("⚖️ Both customers have similar risk levels - monitor both closely.")
 
-# --- Batch Analysis Tab ---
-with tabs[1]:
-    st.header("📊 Batch Customer Analysis")
-    st.markdown("Upload a CSV file to analyze multiple customers at once and get comprehensive insights.")
-    
-    col1, col2 = st.columns([1, 2])
-    
-    with col1:
-        st.subheader("📁 Upload Data")
-        
-        # Sample CSV download
-        sample_data = {
-            'customerID': ['7590-VHVEG', '5575-GNVDE', '3668-QPYBK'],
-            'gender': ['Female', 'Male', 'Male'], 
-            'SeniorCitizen': [0, 0, 0],
-            'Partner': ['Yes', 'No', 'No'],
-            'Dependents': ['No', 'No', 'No'],
-            'tenure': [1, 34, 2],
-            'PhoneService': ['No', 'Yes', 'Yes'],
-            'MultipleLines': ['No phone service', 'No', 'No'],
-            'InternetService': ['DSL', 'DSL', 'DSL'],
-            'OnlineSecurity': ['No', 'Yes', 'Yes'],
-            'OnlineBackup': ['Yes', 'No', 'Yes'],
-            'DeviceProtection': ['No', 'Yes', 'No'],
-            'TechSupport': ['No', 'No', 'No'],
-            'StreamingTV': ['No', 'No', 'No'],
-            'StreamingMovies': ['No', 'No', 'No'],
-            'Contract': ['Month-to-month', 'One year', 'Month-to-month'],
-            'PaperlessBilling': ['Yes', 'No', 'Yes'],
-            'PaymentMethod': ['Electronic check', 'Mailed check', 'Mailed check'],
-            'MonthlyCharges': [29.85, 56.95, 53.85],
-            'TotalCharges': [29.85, 1889.5, 108.15]
-        }
-        sample_df = pd.DataFrame(sample_data)
-        
-        # Convert to CSV for download
-        csv_buffer = io.StringIO()
-        sample_df.to_csv(csv_buffer, index=False)
-        
-        st.download_button(
-            label="📥 Download Sample CSV Template",
-            data=csv_buffer.getvalue(),
-            file_name="customer_template.csv",
-            mime="text/csv",
-            help="Download this template to see the required format"
-        )
-        
-        uploaded_file = st.file_uploader("Choose CSV file", type=['csv'], 
-                                       help="Upload a CSV file with customer data")
-        
-        batch_model = st.selectbox("Select Model for Batch Analysis", 
-                                 ['Logistic Regression', 'Random Forest', 'XGBoost'], 
-                                 key='batch')
-    
-    with col2:
-        st.subheader("📈 Analysis Results")
-        
-        if uploaded_file is not None:
-            try:
-                # Read uploaded file
-                df_upload = pd.read_csv(uploaded_file)
-                st.success(f"✅ Successfully loaded {len(df_upload)} customers")
-                
-                # Process predictions
-                model_name_map = {'Logistic Regression': 'logisticregression', 
-                                'Random Forest': 'randomforest', 'XGBoost': 'xgboost'}
-                model = models[model_name_map[batch_model]]
-                
-                results_df = process_batch_predictions(df_upload, model, avg_tenure)
-                
-                # Summary statistics
-                st.markdown("### 📊 Summary Statistics")
-                col_stat1, col_stat2, col_stat3 = st.columns(3)
-                
-                with col_stat1:
-                    high_risk_count = len(results_df[results_df['Risk_Level'] == 'High'])
-                    st.metric("High Risk Customers", high_risk_count, 
-                            f"{high_risk_count/len(results_df)*100:.1f}%")
-                
-                with col_stat2:
-                    avg_clv = results_df['CLV'].mean()
-                    st.metric("Average CLV", f"${avg_clv:,.2f}")
-                
-                with col_stat3:
-                    total_risk_value = results_df[results_df['Risk_Level'] == 'High']['CLV'].sum()
-                    st.metric("At-Risk Revenue", f"${total_risk_value:,.2f}")
-                
-                # Risk distribution chart
-                st.markdown("### 📈 Risk Distribution")
-                fig_dist, ax_dist = plt.subplots(figsize=(10, 4))
-                risk_counts = results_df['Risk_Level'].value_counts()
-                colors = ['#FF4B4B' if x == 'High' else '#00D4AA' for x in risk_counts.index]
-                ax_dist.bar(risk_counts.index, risk_counts.values, color=colors)
-                ax_dist.set_title('Customer Risk Distribution')
-                ax_dist.set_ylabel('Number of Customers')
-                st.pyplot(fig_dist)
-                
-                # Risk-Value Matrix
-                st.markdown("### 🎯 Customer Risk-Value Matrix")
-                risk_value_fig = create_risk_value_plot(results_df)
-                st.pyplot(risk_value_fig)
-                
-                # Detailed results table
-                st.markdown("### 📋 Detailed Results")
-                st.dataframe(results_df.round(3), width='stretch')
-                
-                # Download results
-                results_csv = results_df.to_csv(index=False)
-                st.download_button(
-                    label="📥 Download Results CSV",
-                    data=results_csv,
-                    file_name=f"churn_analysis_results_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.csv",
-                    mime="text/csv"
-                )
-                
-            except Exception as e:
-                st.error(f"Error processing file: {str(e)}")
-                st.info("Please ensure your CSV file matches the required format. Download the sample template for reference.")
-
 # --- Model Performance Tab ---
-with tabs[2]:
+with tabs[1]:
     st.header("Model Performance Evaluation")
     st.markdown("Compare model performance and analyze feature importance and discrimination ability.")
     
@@ -1249,7 +1056,7 @@ with tabs[2]:
             st.metric("Recall", f"{metrics['Recall']:.3f}")
 
 # --- CLV Overview Tab ---
-with tabs[3]:
+with tabs[2]:
     st.header("💰 Customer Lifetime Value (CLV) Analysis")
     st.markdown("Understand customer segments based on their lifetime value and churn behavior.")
     
