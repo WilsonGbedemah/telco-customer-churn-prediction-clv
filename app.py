@@ -670,80 +670,22 @@ with tabs[0]:
             st.markdown(f"**Customer Segment:** <span style='color:{segment_color}'>{segment}</span>", 
                        unsafe_allow_html=True)
             
-            # Enhanced Retention Strategies Dashboard
-            st.markdown("### 🎯 AI-Powered Retention Recommendations")
+            # Simplified Retention Strategies
+            st.markdown("### 🎯 Recommended Retention Strategies")
+            customer_dict = input_df.to_dict('records')[0] if len(input_df) > 0 else {}
+            strategies = get_retention_strategy(churn_prob, clv, customer_dict)
             
-            # Create tabs for different types of recommendations
-            strategy_tabs = st.tabs(["💼 Business Actions", "📧 Personalized Outreach", "💰 Financial Impact"])
+            if strategies:
+                for strategy in strategies:
+                    st.markdown(f"• {strategy}")
             
-            with strategy_tabs[0]:
-                st.markdown("#### Immediate Action Items")
-                customer_dict = input_df.to_dict('records')[0] if len(input_df) > 0 else {}
-                strategies = get_retention_strategy(churn_prob, clv, customer_dict)
-                
-                if strategies:
-                    for i, strategy in enumerate(strategies, 1):
-                        st.markdown(f"""
-                        <div style="background: #f0f2f6; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #1f77b4;">
-                            <strong>Action {i}:</strong> {strategy}
-                        </div>
-                        """, unsafe_allow_html=True)
-                
-                # Priority assessment
-                if churn_prob >= 0.5:
-                    st.error("🚨 **HIGH PRIORITY**: Contact within 24 hours")
-                    st.markdown("- Assign to senior retention specialist")
-                    st.markdown("- Offer maximum available discounts")
-                    st.markdown("- Schedule immediate call")
-                elif churn_prob >= 0.3:
-                    st.warning("⚡ **MEDIUM PRIORITY**: Contact within 7 days")
-                    st.markdown("- Proactive outreach recommended")
-                    st.markdown("- Review service satisfaction")
-                    st.markdown("- Consider service upgrades")
-                else:
-                    st.success("✅ **LOW PRIORITY**: Routine check-in")
-                    st.markdown("- Include in next campaign")
-                    st.markdown("- Focus on satisfaction surveys")
-                    st.markdown("- Upselling opportunities")
-            
-            with strategy_tabs[1]:
-                st.markdown("#### Personalized Communication")
-                email_template = generate_retention_email(customer_dict, churn_prob, clv)
-                
-                st.markdown("**Suggested Email Template:**")
-                st.code(email_template, language="text")
-                
-                if st.button("📧 Generate Alternative Email"):
-                    alt_email = generate_retention_email(customer_dict, churn_prob, clv)
-                    st.markdown("**Alternative Template:**")
-                    st.code(alt_email, language="text")
-            
-            with strategy_tabs[2]:
-                st.markdown("#### Financial Impact Analysis")
-                
-                # Calculate retention value
-                monthly_revenue = monthly_charges
-                annual_revenue = monthly_revenue * 12
-                retention_cost = monthly_revenue * 0.2  # Assume 20% of monthly charges
-                roi_months = retention_cost / monthly_revenue
-                
-                col_fi1, col_fi2 = st.columns(2)
-                with col_fi1:
-                    st.metric("Monthly Revenue at Risk", f"${monthly_revenue:,.2f}")
-                    st.metric("Annual Revenue at Risk", f"${annual_revenue:,.2f}")
-                
-                with col_fi2:
-                    st.metric("Suggested Retention Budget", f"${retention_cost:,.2f}")
-                    st.metric("ROI Breakeven", f"{roi_months:.1f} months")
-                
-                # Success probability
-                retention_success = max(0.2, 1 - churn_prob)
-                expected_value = annual_revenue * retention_success - retention_cost
-                
-                if expected_value > 0:
-                    st.success(f"💰 **Expected Value**: +${expected_value:,.2f} (Retain)")
-                else:
-                    st.error(f"💸 **Expected Value**: ${expected_value:,.2f} (Consider alternatives)")
+            # Priority assessment
+            if churn_prob >= 0.5:
+                st.error("🚨 **HIGH PRIORITY**: Contact within 24 hours")
+            elif churn_prob >= 0.3:
+                st.warning("⚡ **MEDIUM PRIORITY**: Contact within 7 days")
+            else:
+                st.success("✅ **LOW PRIORITY**: Routine check-in")
 
             # SHAP Explanation with Simple Insights
             st.markdown("---")
@@ -1008,7 +950,7 @@ with tabs[0]:
     if st.session_state.prediction_history:
         st.markdown("#### Recent Predictions")
         history_df = pd.DataFrame(st.session_state.prediction_history)
-        st.dataframe(history_df, use_container_width=True)
+        st.dataframe(history_df, width='stretch')
         
         # Export functionality
         if st.button("📥 Export History to CSV"):
@@ -1027,13 +969,10 @@ with tabs[0]:
 
 # --- Model Performance Tab ---
 with tabs[1]:
-    st.header("📊 Advanced Model Performance Dashboard")
-    st.markdown("Comprehensive analysis of model performance with interactive visualizations and comparisons.")
+    st.header("📊 Model Performance Evaluation")
+    st.markdown("Compare model performance and analyze feature importance and discrimination ability.")
     
-    # Enhanced Performance Metrics with Radar Chart
-    st.subheader("🎯 Performance Overview")
-    
-    # Performance metrics data
+    # Performance metrics table
     performance_data = {
         'Model': ['Logistic Regression', 'Random Forest', 'XGBoost'],
         'Precision': [0.5092, 0.5494, 0.5167],
@@ -1043,328 +982,118 @@ with tabs[1]:
     }
     performance_df = pd.DataFrame(performance_data).set_index('Model')
     
-    # Create performance comparison tabs
-    perf_tabs = st.tabs(["📈 Metrics Table", "📊 Visual Comparison", "🔍 Detailed Analysis"])
+    st.subheader("Performance Metrics")
     
-    with perf_tabs[0]:
-        # Enhanced styled table
-        st.markdown("#### Performance Metrics Comparison")
-        
-        # Color-code the best performing model for each metric
-        styled_df = performance_df.style.format('{:.4f}')
-        for col in performance_df.columns:
-            styled_df = styled_df.highlight_max(subset=[col], color='lightgreen')
-        
-        st.dataframe(styled_df, use_container_width=True)
-        
-        # Best model recommendation
-        avg_scores = performance_df.mean(axis=1)
-        best_model = avg_scores.idxmax()
-        st.success(f"🏆 **Recommended Model**: {best_model} (Average Score: {avg_scores[best_model]:.3f})")
+    # Enhanced styled table
+    styled_df = performance_df.style.format('{:.4f}')
+    for col in performance_df.columns:
+        styled_df = styled_df.highlight_max(subset=[col], color='lightgreen')
     
-    with perf_tabs[1]:
-        st.markdown("#### 📈 Performance Radar Chart")
-        
-        # Create radar chart for model comparison
-        fig, ax = plt.subplots(figsize=(10, 8), subplot_kw=dict(projection='polar'))
-        
-        # Metrics and models
-        metrics = ['Precision', 'Recall', 'F1-Score', 'AUC-ROC']
-        models_radar = performance_df.index.tolist()
-        colors = ['#FF6B6B', '#4ECDC4', '#45B7D1']
-        
-        # Plot each model
-        for i, model in enumerate(models_radar):
-            values = performance_df.loc[model, metrics].tolist()
-            values += values[:1]  # Complete the circle
-            
-            angles = np.linspace(0, 2*np.pi, len(metrics), endpoint=False).tolist()
-            angles += angles[:1]
-            
-            ax.plot(angles, values, 'o-', linewidth=2, label=model, color=colors[i])
-            ax.fill(angles, values, alpha=0.25, color=colors[i])
-        
-        # Customize radar chart
-        ax.set_xticks(angles[:-1])
-        ax.set_xticklabels(metrics)
-        ax.set_ylim(0, 1)
-        ax.grid(True)
-        ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.0))
-        
-        plt.title('Model Performance Comparison', size=16, fontweight='bold', pad=20)
-        plt.tight_layout()
-        st.pyplot(fig)
-        plt.close()
+    st.dataframe(styled_df, width='stretch')
     
-    with perf_tabs[2]:
-        st.markdown("#### 🎯 Business Impact Analysis")
-        
-        # Cost-benefit analysis
-        col_impact1, col_impact2 = st.columns(2)
-        
-        with col_impact1:
-            st.markdown("**Cost of Errors**")
-            
-            # Assuming business costs
-            false_positive_cost = 50  # Cost of unnecessary retention effort
-            false_negative_cost = 500  # Cost of losing a customer
-            
-            for model in performance_df.index:
-                precision = performance_df.loc[model, 'Precision']
-                recall = performance_df.loc[model, 'Recall']
-                
-                # Calculate error costs (simplified)
-                fp_rate = 1 - precision
-                fn_rate = 1 - recall
-                
-                total_cost = (fp_rate * false_positive_cost + fn_rate * false_negative_cost) * 100
-                
-                st.metric(f"{model} Error Cost", f"${total_cost:.0f}/100 customers")
-        
-        with col_impact2:
-            st.markdown("**Model Recommendations**")
-            
-            # Business-focused recommendations
-            if performance_df.loc['Logistic Regression', 'Recall'] > 0.8:
-                st.success("✅ **Logistic Regression**: Best for catching churners (High Recall)")
-            
-            if performance_df.loc['Random Forest', 'Precision'] > performance_df['Precision'].mean():
-                st.info("📊 **Random Forest**: Most precise predictions")
-            
-            if performance_df.loc['XGBoost', 'AUC-ROC'] > 0.83:
-                st.warning("⚡ **XGBoost**: Strong overall discrimination")
+    # Best model recommendation
+    avg_scores = performance_df.mean(axis=1)
+    best_model = avg_scores.idxmax()
+    st.success(f"🏆 **Recommended Model**: {best_model} (Average Score: {avg_scores[best_model]:.3f})")
     
+    # Explanation of metrics
+    with st.expander("Understanding Performance Metrics"):
+        st.markdown("""
+        - **Precision**: Of all customers predicted to churn, how many actually churned?
+        - **Recall**: Of all customers who actually churned, how many did we catch?  
+        - **F1-Score**: Balanced metric combining precision and recall
+        - **AUC-ROC**: Overall model discriminative ability (0.5 = random, 1.0 = perfect)
+        """)
+
     st.markdown("---")
     
-    # Advanced Visualization Section
-    st.subheader("🔬 Advanced Model Analysis")
+    # Two-column layout for Feature Importance and ROC Curve
+    col1, col2 = st.columns(2)
     
-    analysis_tabs = st.tabs(["🔳 Confusion Matrix", "📈 Precision-Recall", "🎯 Feature Analysis", "📊 Model Comparison"])
-    
-    with analysis_tabs[0]:
-        st.markdown("#### Confusion Matrix Analysis")
+    with col1:
+        st.markdown("#### Feature Importance")
+        model_choice_features = st.selectbox(
+            "Select Model for Feature Analysis", 
+            ["Logistic Regression", "Random Forest", "XGBoost"], 
+            key="feature_analysis"
+        )
         
-        model_choice_cm = st.selectbox("Select Model for Confusion Matrix", 
-                                      ['Logistic Regression', 'Random Forest', 'XGBoost'], 
-                                      key='confusion_matrix')
+        # Load feature importance data
+        importance_df = load_feature_importance(model_choice_features)
         
-        # Create confusion matrix heatmap
-        from sklearn.metrics import confusion_matrix
-        
-        model_name_map_cm = {'Logistic Regression': 'logisticregression', 'Random Forest': 'randomforest', 'XGBoost': 'xgboost'}
-        selected_model_cm = models[model_name_map_cm[model_choice_cm]]
-        y_pred_cm = selected_model_cm.predict(X_test)
-        cm = confusion_matrix(y_test, y_pred_cm)
-        
-        fig, ax = plt.subplots(figsize=(8, 6))
-        im = ax.imshow(cm, interpolation='nearest', cmap='Blues')
-        ax.figure.colorbar(im, ax=ax)
-        
-        # Add text annotations
-        thresh = cm.max() / 2.
-        for i in range(2):
-            for j in range(2):
-                ax.text(j, i, f'{cm[i, j]}', ha="center", va="center",
-                       color="white" if cm[i, j] > thresh else "black", fontsize=14, fontweight='bold')
-        
-        ax.set_title(f'{model_choice_cm} - Confusion Matrix', fontsize=14, fontweight='bold')
-        ax.set_ylabel('True Label', fontsize=12)
-        ax.set_xlabel('Predicted Label', fontsize=12)
-        ax.set_xticks([0, 1])
-        ax.set_yticks([0, 1])
-        ax.set_xticklabels(['No Churn', 'Churn'])
-        ax.set_yticklabels(['No Churn', 'Churn'])
-        
-        plt.tight_layout()
-        st.pyplot(fig)
-        plt.close()
-        
-        # Confusion matrix insights
-        tn, fp, fn, tp = cm.ravel()
-        accuracy = (tp + tn) / (tp + tn + fp + fn)
-        
-        cm_col1, cm_col2, cm_col3, cm_col4 = st.columns(4)
-        with cm_col1:
-            st.metric("True Positives", tp)
-        with cm_col2:
-            st.metric("False Positives", fp)
-        with cm_col3:
-            st.metric("False Negatives", fn)
-        with cm_col4:
-            st.metric("Accuracy", f"{accuracy:.3f}")
-    
-    with analysis_tabs[1]:
-        st.markdown("#### Precision-Recall Curves")
-        
-        from sklearn.metrics import precision_recall_curve, average_precision_score
-        
-        fig, ax = plt.subplots(figsize=(10, 6))
-        
-        colors = ['#FF6B6B', '#4ECDC4', '#45B7D1']
-        model_names = ['Logistic Regression', 'Random Forest', 'XGBoost']
-        model_keys = ['logisticregression', 'randomforest', 'xgboost']
-        
-        for i, (name, key) in enumerate(zip(model_names, model_keys)):
-            model = models[key]
-            y_proba = model.predict_proba(X_test)[:, 1]
-            precision, recall, _ = precision_recall_curve(y_test, y_proba)
-            ap_score = average_precision_score(y_test, y_proba)
+        if importance_df is not None:
+            # Get top 15 features as requested
+            top_features = importance_df.head(15)
             
-            ax.plot(recall, precision, color=colors[i], linewidth=2, 
-                   label=f'{name} (AP = {ap_score:.3f})')
-        
-        ax.set_xlabel('Recall', fontsize=12)
-        ax.set_ylabel('Precision', fontsize=12)
-        ax.set_title('Precision-Recall Curves', fontsize=14, fontweight='bold')
-        ax.legend()
-        ax.grid(True, alpha=0.3)
-        
-        plt.tight_layout()
-        st.pyplot(fig)
-        plt.close()
-        
-        # PR curve explanation
-        with st.expander("📖 Understanding Precision-Recall Curves"):
-            st.markdown("""
-            - **Higher curves**: Better performance
-            - **Area under curve (AP)**: Average precision score
-            - **Top-right corner**: Perfect performance
-            - **Useful for imbalanced datasets**: Better than ROC for rare events
-            """)
+            # Create horizontal bar chart
+            fig, ax = plt.subplots(figsize=(8, 6))
+            
+            # Create color gradient
+            colors = plt.cm.viridis(np.linspace(0.2, 0.8, len(top_features)))
+            
+            # Create horizontal bars
+            y_positions = np.arange(len(top_features))
+            bars = ax.barh(y_positions, top_features['importance'], 
+                          color=colors, alpha=0.7, edgecolor='black', linewidth=0.5)
+            
+            # Customize the plot
+            ax.set_yticks(y_positions)
+            ax.set_yticklabels(top_features['feature'], fontsize=9)
+            ax.set_xlabel('Importance Score', fontsize=10)
+            ax.set_title(f'Top Features - {model_choice_features}', fontsize=12, fontweight='bold')
+            
+            # Invert y-axis (most important at top)
+            ax.invert_yaxis()
+            ax.grid(axis='x', alpha=0.3)
+            
+            plt.tight_layout()
+            st.pyplot(fig, bbox_inches='tight')
+            plt.close()
+            
+        else:
+            st.error(f"Feature importance data not found for {model_choice_features}")
     
-    with analysis_tabs[2]:
-        # Enhanced Feature Analysis (existing code with improvements)
-        st.markdown("#### 🔍 Feature Importance & Correlation Analysis")
+    with col2:
+        st.markdown("#### ROC Curve Analysis")
         
-        col_feat1, col_feat2 = st.columns(2)
+        model_choice_roc = st.selectbox(
+            "Select Model for ROC Curve", 
+            ['Logistic Regression', 'Random Forest', 'XGBoost'], 
+            key='roc_analysis'
+        )
         
-        with col_feat1:
-            st.markdown("#### Feature Importance")
-            model_choice_features = st.selectbox(
-                "Select Model for Feature Analysis", 
-                ["Logistic Regression", "Random Forest", "XGBoost"], 
-                key="feature_analysis"
-            )
-            
-            # Load feature importance data
-            importance_df = load_feature_importance(model_choice_features)
-            
-            if importance_df is not None:
-                # Get top 10 features for better display
-                top_features = importance_df.head(10)
-                
-                # Create horizontal bar chart
-                fig, ax = plt.subplots(figsize=(8, 6))
-                
-                # Create color gradient
-                colors = plt.cm.viridis(np.linspace(0.2, 0.8, len(top_features)))
-                
-                # Create horizontal bars
-                y_positions = np.arange(len(top_features))
-                bars = ax.barh(y_positions, top_features['importance'], 
-                              color=colors, alpha=0.7, edgecolor='black', linewidth=0.5)
-                
-                # Customize the plot
-                ax.set_yticks(y_positions)
-                ax.set_yticklabels(top_features['feature'], fontsize=9)
-                ax.set_xlabel('Importance Score', fontsize=10)
-                ax.set_title(f'Top Features - {model_choice_features}', fontsize=12, fontweight='bold')
-                
-                # Invert y-axis (most important at top)
-                ax.invert_yaxis()
-                ax.grid(axis='x', alpha=0.3)
-                
-                plt.tight_layout()
-                st.pyplot(fig, bbox_inches='tight')
-                plt.close()
-                
-            else:
-                st.error(f"Feature importance data not found for {model_choice_features}")
-        
-        with col_feat2:
-            st.markdown("#### Feature Correlation")
-            
-            # Create correlation heatmap for top features
-            if len(X_test.columns) > 0:
-                # Select top 10 most varying features for correlation
-                feature_vars = X_test.var().sort_values(ascending=False).head(10)
-                top_features_corr = X_test[feature_vars.index]
-                
-                corr_matrix = top_features_corr.corr()
-                
-                fig, ax = plt.subplots(figsize=(8, 6))
-                im = ax.imshow(corr_matrix, cmap='RdBu_r', aspect='auto', vmin=-1, vmax=1)
-                
-                # Add colorbar
-                plt.colorbar(im, ax=ax, shrink=0.8)
-                
-                # Set ticks and labels
-                ax.set_xticks(range(len(corr_matrix.columns)))
-                ax.set_yticks(range(len(corr_matrix.columns)))
-                ax.set_xticklabels(corr_matrix.columns, rotation=45, ha='right', fontsize=8)
-                ax.set_yticklabels(corr_matrix.columns, fontsize=8)
-                
-                # Add correlation values
-                for i in range(len(corr_matrix.columns)):
-                    for j in range(len(corr_matrix.columns)):
-                        text = ax.text(j, i, f'{corr_matrix.iloc[i, j]:.2f}', 
-                                     ha="center", va="center", color="white" if abs(corr_matrix.iloc[i, j]) > 0.5 else "black",
-                                     fontsize=8)
-                
-                ax.set_title('Feature Correlation Matrix', fontsize=12, fontweight='bold')
-                plt.tight_layout()
-                st.pyplot(fig)
-                plt.close()
-    
-    with analysis_tabs[3]:
-        st.markdown("#### 🏆 Interactive Model Comparison")
-        
-        # Side-by-side model comparison
-        comparison_cols = st.columns(3)
-        
-        models_info = {
-            'Logistic Regression': {'AUC': 0.8366, 'Precision': 0.5092, 'Recall': 0.8128, 'F1': 0.6262, 'color': '#FF6B6B'},
-            'Random Forest': {'AUC': 0.8317, 'Precision': 0.5494, 'Recall': 0.7139, 'F1': 0.6209, 'color': '#4ECDC4'},
-            'XGBoost': {'AUC': 0.8316, 'Precision': 0.5167, 'Recall': 0.7861, 'F1': 0.6235, 'color': '#45B7D1'}
+        # Model name mapping
+        model_name_map_roc = {
+            'Logistic Regression': 'logisticregression', 
+            'Random Forest': 'randomforest', 
+            'XGBoost': 'xgboost'
         }
         
-        for i, (model_name, metrics) in enumerate(models_info.items()):
-            with comparison_cols[i]:
-                st.markdown(f"""
-                <div style="background: {metrics['color']}; color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 10px 0;">
-                    <h3 style="margin: 0; font-size: 1.2em;">{model_name}</h3>
-                    <hr style="border-color: rgba(255,255,255,0.3);">
-                    <p style="margin: 5px 0;"><strong>AUC:</strong> {metrics['AUC']:.3f}</p>
-                    <p style="margin: 5px 0;"><strong>Precision:</strong> {metrics['Precision']:.3f}</p>
-                    <p style="margin: 5px 0;"><strong>Recall:</strong> {metrics['Recall']:.3f}</p>
-                    <p style="margin: 5px 0;"><strong>F1-Score:</strong> {metrics['F1']:.3f}</p>
-                </div>
-                """, unsafe_allow_html=True)
+        selected_model_roc = models[model_name_map_roc[model_choice_roc]]
+        y_pred_proba_roc = selected_model_roc.predict_proba(X_test)[:, 1]
+        fpr, tpr, _ = roc_curve(y_test, y_pred_proba_roc)
+        auc_score = roc_auc_score(y_test, y_pred_proba_roc)
         
-        # Model recommendation engine
-        st.markdown("#### 🎯 Model Selection Recommendations")
+        # Create ROC curve plot
+        fig_roc, ax_roc = plt.subplots(figsize=(8, 6))
+        ax_roc.plot(fpr, tpr, linewidth=2, color='#2E86AB',
+                   label=f'{model_choice_roc} (AUC = {auc_score:.3f})')
+        ax_roc.plot([0, 1], [0, 1], 'k--', linewidth=1, alpha=0.7,
+                   label='Random Classifier (AUC = 0.5)')
         
-        use_case = st.selectbox("What's your primary goal?", [
-            "Catch as many churners as possible (High Recall)",
-            "Minimize false alarms (High Precision)", 
-            "Balanced performance (F1-Score)",
-            "Best overall discrimination (AUC)"
-        ])
+        ax_roc.set_xlabel('False Positive Rate', fontsize=12)
+        ax_roc.set_ylabel('True Positive Rate', fontsize=12)
+        ax_roc.set_title(f'{model_choice_roc} ROC Curve', fontsize=14, fontweight='bold')
+        ax_roc.legend(loc='lower right')
+        ax_roc.grid(True, alpha=0.3)
+        ax_roc.set_facecolor('#fafafa')
         
-        if "High Recall" in use_case:
-            st.success("🏆 **Recommended: Logistic Regression** - Best at catching churners (81.3% recall)")
-            st.markdown("✅ **Why**: Catches 8 out of 10 customers who will actually churn")
-            st.markdown("⚠️ **Trade-off**: More false positives (some unnecessary retention efforts)")
-        elif "High Precision" in use_case:
-            st.success("🏆 **Recommended: Random Forest** - Most precise predictions (54.9% precision)")
-            st.markdown("✅ **Why**: When it predicts churn, it's right 55% of the time")
-            st.markdown("⚠️ **Trade-off**: Might miss some churners")
-        elif "F1-Score" in use_case:
-            st.success("🏆 **Recommended: Logistic Regression** - Best balanced performance (62.6% F1)")
-            st.markdown("✅ **Why**: Good balance between catching churners and avoiding false alarms")
-        else:
-            st.success("🏆 **Recommended: Logistic Regression** - Best discrimination ability (83.7% AUC)")
-            st.markdown("✅ **Why**: Best at distinguishing between churners and non-churners")
+        # Add AUC shading
+        ax_roc.fill_between(fpr, tpr, alpha=0.2, color='#2E86AB')
+        
+        plt.tight_layout()
+        st.pyplot(fig_roc, bbox_inches='tight')
+        plt.close()
 
 # --- CLV Overview Tab ---
 with tabs[2]:
@@ -1448,7 +1177,12 @@ with tabs[2]:
         np.random.seed(42)
         n_customers = 500
         clv_values = np.random.lognormal(6, 0.8, n_customers) * 50
-        churn_probs = np.maximum(0, np.minimum(1, 0.5 - 0.15 * np.log(clv_values/1000) + np.random.normal(0, 0.1, n_customers)))
+        # Create more realistic churn probabilities with varied risk levels
+        churn_probs = np.random.beta(2, 3, n_customers)  # More varied distribution
+        # Add some correlation with CLV (higher CLV = slightly lower churn risk)
+        clv_normalized = (clv_values - np.min(clv_values)) / (np.max(clv_values) - np.min(clv_values))
+        churn_probs = churn_probs * (1.2 - 0.3 * clv_normalized)  # Reduce churn for high CLV
+        churn_probs = np.clip(churn_probs, 0, 1)
         
         # Create scatter plot
         fig, ax = plt.subplots(figsize=(12, 8))
