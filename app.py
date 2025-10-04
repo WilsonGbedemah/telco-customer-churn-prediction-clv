@@ -30,7 +30,7 @@ SHAP_AVAILABLE = True
 SHAP_ERROR_MESSAGE = None
 try:
     import shap
-    print("✅ SHAP successfully loaded!")
+    print("SHAP successfully loaded!")
 except (ImportError, OSError):
     SHAP_AVAILABLE = False
     SHAP_ERROR_MESSAGE = "SHAP interpretability features are disabled. Using feature importance fallback method instead."
@@ -136,7 +136,7 @@ def create_feature_importance_plot(importance_df, model_name):
 def get_customer_segment(churn_prob, clv):
     """Classify customer into business segments based on churn risk and CLV."""
     if churn_prob >= 0.5 and clv >= 2000:
-        return "🚨 Critical Risk - High Value", "#FF4B4B"
+        return "Critical Risk - High Value", "#FF4B4B"
     elif churn_prob >= 0.5 and clv < 2000:
         return "High Risk - Low Value", "#FF8C00" 
     elif churn_prob >= 0.3 and clv >= 2000:
@@ -146,7 +146,7 @@ def get_customer_segment(churn_prob, clv):
     elif churn_prob < 0.3 and clv >= 2000:
         return "Champions - Retain", "#1E90FF"
     else:
-        return "✅ Low Risk - Stable", "#228B22"
+        return "Low Risk - Stable", "#228B22"
 
 def get_retention_strategy(churn_prob, clv, customer_data):
     """Generate personalized retention strategy recommendations."""
@@ -155,20 +155,20 @@ def get_retention_strategy(churn_prob, clv, customer_data):
     if churn_prob >= 0.5:
         if clv >= 2000:
             strategies.append("**Executive Intervention**: Personal call from account manager")
-            strategies.append("💳 **Premium Offers**: 20-30% discount or service upgrades")
+            strategies.append("**Premium Offers**: 20-30% discount or service upgrades")
         else:
-            strategies.append("📞 **Retention Call**: Automated or junior staff outreach")
+            strategies.append("**Retention Call**: Automated or junior staff outreach")
             strategies.append("**Cost-Effective Offers**: 10-15% discount or loyalty rewards")
     
     # Check if month-to-month (neither one year nor two year contract)
     if customer_data.get('Contract_One year', 0) == 0 and customer_data.get('Contract_Two year', 0) == 0:
-        strategies.append("📋 **Contract Upgrade**: Offer annual contract with incentives")
+        strategies.append("**Contract Upgrade**: Offer annual contract with incentives")
     
     if customer_data.get('TechSupport_No', 0) == 1:
         strategies.append("🛠️ **Support Enhancement**: Free tech support for 3-6 months")
     
     if customer_data.get('InternetService_Fiber optic', 0) == 1 and churn_prob > 0.5:
-        strategies.append("🌐 **Service Optimization**: Network quality improvements")
+        strategies.append("**Service Optimization**: Network quality improvements")
     
     return strategies
 
@@ -394,12 +394,17 @@ st.markdown("""
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     margin: 0.5rem 0;
     transition: all 0.2s ease;
+    color: #f1f5f9;
 }
 
 .metric-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     border-color: #60a5fa;
+}
+
+.metric-card h4 {
+    color: #f1f5f9 !important;
 }
 
 /* Code and monospace text - Dark Theme */
@@ -669,7 +674,7 @@ with tabs[0]:
         st.markdown("---")
         
         # Account Information
-        st.markdown("**💳 Account Details**")
+        st.markdown("**Account Details**")
         st.caption("Contract and billing information")
         
         contract_default = st.session_state.get('populate_contract', 'Month-to-month')
@@ -703,7 +708,7 @@ with tabs[0]:
         st.markdown("---")
         
         # Services Information  
-        st.markdown("**📞 Services**")
+        st.markdown("**Services**")
         st.caption("Communication and internet services")
         
         phone_service_default = st.session_state.get('populate_phone_service', "No")
@@ -840,7 +845,7 @@ with tabs[0]:
                 if churn_prob >= 0.5:
                     risk_level = "HIGH RISK"
                     risk_color = "#ff4444"
-                    risk_icon = "🚨"
+                    risk_icon = "HIGH"
                 elif churn_prob >= 0.3:
                     risk_level = "MEDIUM RISK" 
                     risk_color = "#ffcc00"
@@ -848,7 +853,7 @@ with tabs[0]:
                 else:
                     risk_level = "LOW RISK"
                     risk_color = "#44aa44"
-                    risk_icon = "✅"
+                    risk_icon = "LOW"
                 
                 # Enhanced risk gauge with confidence
                 st.markdown(f"""
@@ -905,11 +910,11 @@ with tabs[0]:
             
             # Priority assessment
             if churn_prob >= 0.5:
-                st.error("🚨 **HIGH PRIORITY**: Contact within 24 hours")
+                st.error("**HIGH PRIORITY**: Contact within 24 hours")
             elif churn_prob >= 0.3:
                 st.warning("**MEDIUM PRIORITY**: Contact within 7 days")
             else:
-                st.success("✅ **LOW PRIORITY**: Routine check-in")
+                st.success("**LOW PRIORITY**: Routine check-in")
 
             # SHAP Explanation with Simple Insights
             st.markdown("---")
@@ -923,7 +928,7 @@ with tabs[0]:
                     try:
                         shap_values = explainer(input_df[X_test.columns])
                         
-                        st.markdown("#### 📊 Technical Analysis (SHAP)")
+                        st.markdown("#### Technical Analysis (SHAP)")
                         fig, ax = plt.subplots(figsize=(10, 6))
                         shap.plots.waterfall(shap_values[0], max_display=10, show=False)
                         st.pyplot(fig, bbox_inches='tight')
@@ -948,7 +953,7 @@ with tabs[0]:
             st.markdown("---")
             
             # Simple Business Insights (underneath the technical chart)
-            st.markdown("#### 💼 Business Insights")
+            st.markdown("#### Business Insights")
             st.markdown("Key factors that influenced this prediction in simple terms:")
             
             # Create a simple, understandable explanation
@@ -977,26 +982,26 @@ with tabs[0]:
             if input_df['tenure'].iloc[0] <= 12:
                 explanations.append("**New Customer**: Short tenure (≤12 months) increases churn risk")
             elif input_df['tenure'].iloc[0] >= 60:
-                explanations.append("✅ **Loyal Customer**: Long tenure (≥5 years) reduces churn risk")
+                explanations.append("**Loyal Customer**: Long tenure (≥5 years) reduces churn risk")
             
             # Contract analysis
             if input_df['Contract_One year'].iloc[0] == 0 and input_df['Contract_Two year'].iloc[0] == 0:
                 explanations.append("**Month-to-Month Contract**: No long-term commitment increases risk")
             elif input_df['Contract_Two year'].iloc[0] == 1:
-                explanations.append("✅ **Two-Year Contract**: Long-term commitment reduces churn risk")
+                explanations.append("**Two-Year Contract**: Long-term commitment reduces churn risk")
             
             # Payment method analysis
             if input_df['PaymentMethod_Electronic check'].iloc[0] == 1:
                 explanations.append("**Electronic Check Payment**: This payment method shows higher churn rates")
             elif input_df['PaymentMethod_Credit card (automatic)'].iloc[0] == 1:
-                explanations.append("✅ **Automatic Credit Card**: Convenient payment reduces churn risk")
+                explanations.append("**Automatic Credit Card**: Convenient payment reduces churn risk")
             
             # Monthly charges analysis
             monthly_charges = input_df['MonthlyCharges'].iloc[0]
             if monthly_charges > 80:
                 explanations.append("**High Monthly Charges**: Premium pricing may increase churn risk")
             elif monthly_charges < 35:
-                explanations.append("✅ **Affordable Pricing**: Lower charges reduce churn likelihood")
+                explanations.append("**Affordable Pricing**: Lower charges reduce churn likelihood")
             
             # Internet service analysis
             if input_df['InternetService_Fiber optic'].iloc[0] == 1:
@@ -1145,11 +1150,11 @@ with tabs[0]:
         elif b_risk_score > a_risk_score:
             st.error("🚨 Customer B has higher churn risk - prioritize retention efforts!")
         else:
-            st.warning("⚖️ Both customers have similar risk levels - monitor both closely.")
+            st.warning("Both customers have similar risk levels - monitor both closely.")
     
     # Prediction History Tracker
     st.markdown("---")
-    st.markdown("### 📊 Prediction History & Export")
+    st.markdown("### Prediction History & Export")
     
     # Initialize session state for prediction history
     if 'prediction_history' not in st.session_state:
@@ -1177,17 +1182,17 @@ with tabs[0]:
         st.dataframe(history_df, width='stretch')
         
         # Export functionality
-        if st.button("📥 Export History to CSV"):
+        if st.button("Export History to CSV"):
             csv = history_df.to_csv(index=False)
             st.download_button(
-                label="⬇️ Download CSV",
+                label="Download CSV",
                 data=csv,
                 file_name=f"churn_predictions_{time.strftime('%Y%m%d')}.csv",
                 mime="text/csv"
             )
         
         # Clear history button
-        if st.button("🗑️ Clear History"):
+        if st.button("Clear History"):
             st.session_state.prediction_history = []
             st.success("History cleared!")
 
@@ -1740,7 +1745,7 @@ with tabs[2]:
 
     st.markdown("---")
     
-    # 📊 CLV Distribution Analysis - Simplified
+    # CLV Distribution Analysis - Simplified
     st.markdown('<h3 class="subsection-header">Customer Lifetime Value Analysis</h3>', unsafe_allow_html=True)
     
     clv_col1, clv_col2 = st.columns(2)
