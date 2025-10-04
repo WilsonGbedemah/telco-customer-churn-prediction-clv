@@ -314,76 +314,275 @@ def calculate_optimal_offer(clv, churn_prob):
 X_test, y_test, avg_tenure = load_data()
 models = load_models()
 
+# --- Professional Styling ---
+st.markdown("""
+<style>
+/* Import professional Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* Global app styling - Dark Theme */
+.stApp {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    color: #f1f5f9;
+}
+
+/* Main title styling - Dark Theme */
+.main-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 3.2rem;
+    color: #f1f5f9;
+    text-align: center;
+    margin: 1rem 0;
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #1d4ed8 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+}
+
+/* Subtitle styling - Dark Theme */
+.main-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 1.2rem;
+    color: #cbd5e1;
+    text-align: center;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+/* Professional headers - Dark Theme */
+.section-header {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 2rem;
+    color: #f1f5f9;
+    margin: 1.5rem 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid #475569;
+}
+
+.subsection-header {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    color: #e2e8f0;
+    margin: 1rem 0 0.75rem 0;
+    display: flex;
+    align-items: center;
+}
+
+.subsection-header::before {
+    content: "";
+    width: 4px;
+    height: 24px;
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    margin-right: 12px;
+    border-radius: 2px;
+    box-shadow: 0 2px 8px rgba(96, 165, 250, 0.3);
+}
+
+/* Professional metrics and cards - Dark Theme */
+.metric-card {
+    background: linear-gradient(135deg, #1e293b, #334155);
+    border: 1px solid #475569;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    margin: 0.5rem 0;
+    transition: all 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    border-color: #60a5fa;
+}
+
+/* Code and monospace text - Dark Theme */
+code, .stCode {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    background-color: #334155;
+    color: #e2e8f0;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Professional button styling - Dark Theme */
+.stButton > button {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.6);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+}
+
+/* Professional selectbox styling - Dark Theme */
+.stSelectbox > div > div {
+    font-family: 'Inter', sans-serif;
+    background-color: #334155;
+    color: #e2e8f0;
+    border-radius: 8px;
+    border: 2px solid #475569;
+    transition: border-color 0.2s ease;
+}
+
+.stSelectbox > div > div:focus-within {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+/* Professional text input styling - Dark Theme */
+.stTextInput > div > div > input {
+    font-family: 'Inter', sans-serif;
+    background-color: #334155;
+    color: #e2e8f0;
+    border-radius: 8px;
+    border: 2px solid #475569;
+    transition: border-color 0.2s ease;
+}
+
+.stTextInput > div > div > input:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+</style>
+""", unsafe_allow_html=True)
+
 # --- App Title ---
-st.title("Telco Customer Churn Prediction & CLV")
-st.markdown("An interactive tool to predict customer churn, understand its drivers, and analyze customer value.")
+st.markdown('<h1 class="main-title">Telco Customer Churn Prediction & CLV</h1>', unsafe_allow_html=True)
+st.markdown('<p class="main-subtitle">An intelligent analytics platform to predict customer churn, understand behavioral drivers, and optimize customer lifetime value</p>', unsafe_allow_html=True)
 
 # Show SHAP warning if needed
 if SHAP_ERROR_MESSAGE:
     st.warning(SHAP_ERROR_MESSAGE)
 
-# --- App Tabs ---
-# Custom CSS for centered and colored tabs
+# --- Professional Tab Styling ---
 st.markdown("""
 <style>
-/* Center the tabs container */
+/* Professional tab container styling - Dark Theme with Center Alignment */
 .stTabs [data-baseweb="tab-list"] {
-    justify-content: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-radius: 16px;
+    padding: 12px;
+    margin: 2rem auto;
     max-width: 900px;
-    margin: 0 auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    border: 1px solid #475569;
+    justify-content: center;
 }
 
-/* Style individual tabs with different colors and borders */
+/* Individual tab styling - Engaging Colors */
 .stTabs [data-baseweb="tab-list"] button {
-    margin: 0 5px;
-    border-radius: 10px;
-    border: 2px solid transparent;
-    padding: 10px 20px;
+    font-family: 'Inter', sans-serif;
     font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-size: 1rem;
+    height: 3.5rem;
+    min-width: 200px;
+    white-space: nowrap;
+    color: #cbd5e1;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 0 2rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 
-/* Tab 1 - Churn Prediction (Blue) */
+/* Tab 1 - Churn Prediction (Electric Blue) */
 .stTabs [data-baseweb="tab-list"] button:nth-child(1) {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-color: #5a67d8;
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
 }
 
 .stTabs [data-baseweb="tab-list"] button:nth-child(1):hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5);
+    border-color: #60a5fa;
 }
 
-/* Tab 2 - Model Performance (Purple) */
+/* Tab 2 - Model Performance (Vibrant Purple) */
 .stTabs [data-baseweb="tab-list"] button:nth-child(2) {
-    background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
-    color: white;
-    border-color: #9575cd;
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
+    box-shadow: 0 4px 16px rgba(168, 85, 247, 0.3);
 }
 
 .stTabs [data-baseweb="tab-list"] button:nth-child(2):hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(161, 140, 209, 0.3);
+    background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 50%, #a855f7 100%);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.5);
+    border-color: #c084fc;
 }
 
-/* Tab 3 - CLV Overview (Teal) */
+/* Tab 3 - CLV Overview (Emerald Green) */
 .stTabs [data-baseweb="tab-list"] button:nth-child(3) {
-    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-    color: white;
-    border-color: #4db6ac;
+    background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
 }
 
 .stTabs [data-baseweb="tab-list"] button:nth-child(3):hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(132, 250, 176, 0.3);
+    background: linear-gradient(135deg, #047857 0%, #059669 50%, #10b981 100%);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
+    border-color: #34d399;
 }
 
 /* Active tab styling */
 .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
-    border-width: 3px;
-    transform: translateY(-1px);
+    color: white;
+    transform: translateY(-3px) scale(1.05);
+    border-width: 2px;
+    font-weight: 700;
+}
+
+.stTabs [data-baseweb="tab-list"] button[aria-selected="true"]:nth-child(1) {
+    border-color: #93c5fd;
+    box-shadow: 0 12px 32px rgba(59, 130, 246, 0.6);
+}
+
+.stTabs [data-baseweb="tab-list"] button[aria-selected="true"]:nth-child(2) {
+    border-color: #d8b4fe;
+    box-shadow: 0 12px 32px rgba(168, 85, 247, 0.6);
+}
+
+.stTabs [data-baseweb="tab-list"] button[aria-selected="true"]:nth-child(3) {
+    border-color: #6ee7b7;
+    box-shadow: 0 12px 32px rgba(16, 185, 129, 0.6);
+}
+
+/* Tab content area */
+.stTabs [data-baseweb="tab-panel"] {
+    padding-top: 2rem;
+    background: rgba(30, 41, 59, 0.3);
+    border-radius: 16px;
+    margin-top: 1rem;
+    padding: 2rem;
+}
+
+/* Add subtle animation */
+@keyframes tabGlow {
+    0%, 100% { box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3); }
+    50% { box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
+}
+
+.stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
+    animation: tabGlow 2s ease-in-out infinite;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -392,14 +591,39 @@ tabs = st.tabs(["Churn Prediction", "Model Performance", "CLV Overview"])
 
 # --- Predict Tab ---
 with tabs[0]:
-    # Animated header for churn prediction
+    # Professional header for churn prediction
     st.markdown("""
-    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        <h1 style="color: white; margin: 0; font-size: 2.5em; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+    <div style="
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(30, 41, 59, 0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+    ">
+        <h2 style="
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin: 0;
+            text-align: center;
+            background: linear-gradient(135deg, #ffffff, #e2e8f0);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        ">
             Customer Churn Prediction Engine
-        </h1>
-        <p style="color: #f8f9fa; margin: 10px 0; font-size: 1.2em;">
-            AI-Powered Risk Assessment • Intelligent Insights • Actionable Recommendations
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            text-align: center;
+            margin: 1rem 0 0 0;
+            opacity: 0.9;
+            line-height: 1.6;
+        ">
+            Advanced machine learning analytics for customer retention strategy
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -419,7 +643,7 @@ with tabs[0]:
     col1, col2 = st.columns([1, 2])
 
     with col1:
-        st.subheader("📋 Customer Profile")
+        st.markdown('<h3 class="subsection-header">Customer Profile</h3>', unsafe_allow_html=True)
         
         # Demographic Information
         st.markdown("**👤 Demographics**")
@@ -531,7 +755,7 @@ with tabs[0]:
                                           help="Choose the machine learning model for prediction")
 
     with col2:
-        st.subheader("Prediction Results")
+        st.markdown('<h3 class="subsection-header">Prediction Results</h3>', unsafe_allow_html=True)
         
         if st.button("🔮 Predict Churn Risk", width='stretch', type="primary"):
             # Create input dataframe with all features
@@ -689,7 +913,7 @@ with tabs[0]:
 
             # SHAP Explanation with Simple Insights
             st.markdown("---")
-            st.subheader("Why This Prediction?")
+            st.markdown('<h3 class="subsection-header">Why This Prediction?</h3>', unsafe_allow_html=True)
             st.markdown("Understanding which factors drive the churn prediction for this customer:")
             
             # Show SHAP chart first (technical analysis)
@@ -823,7 +1047,7 @@ with tabs[0]:
             st.markdown("---")
             
             # Feature 1: Model Confidence Indicator
-            st.subheader("🎯 Model Confidence Analysis")
+            st.markdown('<h3 class="subsection-header">Model Confidence Analysis</h3>', unsafe_allow_html=True)
             
             confidence_data = calculate_model_confidence(model, input_df)
             
@@ -851,7 +1075,7 @@ with tabs[0]:
 
     # Feature 2: Customer Comparison Tool  
     st.markdown("---")
-    st.subheader("Customer Comparison Tool")
+    st.markdown('<h3 class="subsection-header">Customer Comparison Tool</h3>', unsafe_allow_html=True)
     st.markdown("Compare two different customer profiles side-by-side.")
     
     comp_col1, comp_col2 = st.columns(2)
@@ -969,8 +1193,18 @@ with tabs[0]:
 
 # --- Model Performance Tab ---
 with tabs[1]:
-    st.header("Model Performance Evaluation")
-    st.markdown("Compare model performance and analyze feature importance and discrimination ability.")
+    st.markdown('<h2 class="section-header">Model Performance Evaluation</h2>', unsafe_allow_html=True)
+    st.markdown("""
+    <p style="
+        font-family: 'Inter', sans-serif;
+        font-size: 1.1rem;
+        color: #64748b;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    ">
+        Comprehensive analysis of model performance metrics, feature importance, and discrimination capabilities
+    </p>
+    """, unsafe_allow_html=True)
     
     # Performance metrics table
     performance_data = {
@@ -982,7 +1216,7 @@ with tabs[1]:
     }
     performance_df = pd.DataFrame(performance_data).set_index('Model')
     
-    st.subheader("Performance Metrics")
+    st.markdown('<h3 class="subsection-header">Performance Metrics</h3>', unsafe_allow_html=True)
     
     # Enhanced styled table
     styled_df = performance_df.style.format('{:.4f}')
@@ -1008,7 +1242,7 @@ with tabs[1]:
     st.markdown("---")
     
     # Feature Importance Analysis (Full Width)
-    st.subheader("Feature Importance Analysis")
+    st.markdown('<h3 class="subsection-header">Feature Importance Analysis</h3>', unsafe_allow_html=True)
     st.markdown("Understanding which customer characteristics drive churn predictions across different models.")
     
     model_choice_features = st.selectbox(
@@ -1105,7 +1339,7 @@ with tabs[1]:
     st.markdown("---")
     
     # ROC Curve Analysis (Full Width, Below Feature Importance)
-    st.subheader("ROC Curve Analysis")
+    st.markdown('<h3 class="subsection-header">ROC Curve Analysis</h3>', unsafe_allow_html=True)
     st.markdown("Evaluating model discrimination ability - how well each model distinguishes between churners and non-churners.")
     
     model_choice_roc = st.selectbox(
@@ -1272,61 +1506,228 @@ Performance: {'Excellent' if auc_score > 0.8 else 'Good' if auc_score > 0.7 else
 
 # --- CLV Overview Tab ---
 with tabs[2]:
-    st.header("Customer Lifetime Value (CLV) Analysis")
-    st.markdown("Understanding customer value distribution and churn patterns based on real telco industry insights.")
+    st.markdown('<h2 class="section-header">Customer Lifetime Value (CLV) Analysis</h2>', unsafe_allow_html=True)
+    st.markdown("""
+    <p style="
+        font-family: 'Inter', sans-serif;
+        font-size: 1.1rem;
+        color: #64748b;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    ">
+        Strategic insights into customer value distribution and churn patterns based on industry best practices
+    </p>
+    """, unsafe_allow_html=True)
 
     # CLV Analysis Insights 
-    st.subheader("Key CLV Insights")
+    st.markdown('<h3 class="subsection-header">Key CLV Insights</h3>', unsafe_allow_html=True)
     
     col_insight1, col_insight2, col_insight3 = st.columns(3)
     
     with col_insight1:
         st.markdown("""
-        **📊 CLV Calculation**
-        - Formula: Monthly Charges × Avg Tenure
-        - Average Tenure: 32.3 months
-        - Typical Range: $500 - $4,000
-        - Industry Average: ~$2,100
-        """)
+        <div class="metric-card">
+            <h4 style="
+                font-family: 'Inter', sans-serif;
+                font-weight: 600;
+                color: #1e293b;
+                margin: 0 0 1rem 0;
+                font-size: 1.2rem;
+                display: flex;
+                align-items: center;
+            ">
+                <span style="
+                    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                    color: white;
+                    padding: 0.5rem;
+                    border-radius: 8px;
+                    margin-right: 0.75rem;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    width: 2rem;
+                    height: 2rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">$</span>
+                CLV Calculation
+            </h4>
+            <ul style="
+                font-family: 'Inter', sans-serif;
+                color: #475569;
+                line-height: 1.8;
+                margin: 0;
+                padding-left: 1.2rem;
+            ">
+                <li>Formula: Monthly Charges × Avg Tenure</li>
+                <li>Average Tenure: 32.3 months</li>
+                <li>Typical Range: $500 - $4,000</li>
+                <li>Industry Average: ~$2,100</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col_insight2:
         st.markdown("""
-        **🎯 Churn Patterns** 
-        - High CLV customers: 15% churn rate
-        - Medium CLV customers: 22-28% churn
-        - Low CLV customers: 35% churn rate
-        - Retention ROI highest for high CLV
-        """)
+        <div class="metric-card">
+            <h4 style="
+                font-family: 'Inter', sans-serif;
+                font-weight: 600;
+                color: #1e293b;
+                margin: 0 0 1rem 0;
+                font-size: 1.2rem;
+                display: flex;
+                align-items: center;
+            ">
+                <span style="
+                    background: linear-gradient(135deg, #10b981, #059669);
+                    color: white;
+                    padding: 0.5rem;
+                    border-radius: 8px;
+                    margin-right: 0.75rem;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    width: 2rem;
+                    height: 2rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">%</span>
+                Churn Patterns
+            </h4>
+            <ul style="
+                font-family: 'Inter', sans-serif;
+                color: #475569;
+                line-height: 1.8;
+                margin: 0;
+                padding-left: 1.2rem;
+            ">
+                <li>High CLV customers: 15% churn rate</li>
+                <li>Medium CLV customers: 22-28% churn</li>
+                <li>Low CLV customers: 35% churn rate</li>
+                <li>Retention ROI highest for high CLV</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col_insight3:
         st.markdown("""
-        **💼 Business Strategy**
-        - Focus retention on high CLV (>$3K)
-        - Medium CLV: proactive engagement
-        - Low CLV: cost-effective strategies
-        - Monitor tenure impact on CLV
-        """)
+        <div class="metric-card">
+            <h4 style="
+                font-family: 'Inter', sans-serif;
+                font-weight: 600;
+                color: #1e293b;
+                margin: 0 0 1rem 0;
+                font-size: 1.2rem;
+                display: flex;
+                align-items: center;
+            ">
+                <span style="
+                    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                    color: white;
+                    padding: 0.5rem;
+                    border-radius: 8px;
+                    margin-right: 0.75rem;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    width: 2rem;
+                    height: 2rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">S</span>
+                Business Strategy
+            </h4>
+            <ul style="
+                font-family: 'Inter', sans-serif;
+                color: #475569;
+                line-height: 1.8;
+                margin: 0;
+                padding-left: 1.2rem;
+            ">
+                <li>Focus retention on high CLV (>$3K)</li>
+                <li>Medium CLV: proactive engagement</li>
+                <li>Low CLV: cost-effective strategies</li>
+                <li>Monitor tenure impact on CLV</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("---")
-    st.subheader("Strategic Recommendations")
+    st.markdown('<h3 class="subsection-header">Strategic Recommendations</h3>', unsafe_allow_html=True)
     
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px; margin: 20px 0;">
-        <h4 style="margin: 0; text-align: center;">CLV-Based Action Plan</h4>
-        <hr style="border-color: rgba(255,255,255,0.3);">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            <div>
-                <h5>High Priority (CLV > $3,000)</h5>
-                <ul style="margin: 10px 0;">
+    <div style="
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 16px;
+        margin: 2rem 0;
+        box-shadow: 0 8px 32px rgba(30, 41, 59, 0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+    ">
+        <h4 style="
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin: 0 0 1rem 0;
+            text-align: center;
+            color: white;
+        ">CLV-Based Action Plan</h4>
+        <hr style="
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            margin: 1rem 0 1.5rem 0;
+        ">
+        <div style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            font-family: 'Inter', sans-serif;
+        ">
+            <div style="
+                background: rgba(255,255,255,0.1);
+                padding: 1.5rem;
+                border-radius: 12px;
+                border: 1px solid rgba(255,255,255,0.1);
+            ">
+                <h5 style="
+                    font-weight: 600;
+                    margin: 0 0 1rem 0;
+                    color: #e2e8f0;
+                    font-size: 1.1rem;
+                ">High Priority (CLV > $3,000)</h5>
+                <ul style="
+                    margin: 0;
+                    padding-left: 1.2rem;
+                    line-height: 1.8;
+                    color: #f1f5f9;
+                ">
                     <li>Dedicated account management</li>
                     <li>Premium support channels</li>
                     <li>Loyalty rewards program</li>
                     <li>Proactive service monitoring</li>
                 </ul>
             </div>
-            <div>
-                <h5>Medium Priority (CLV $1,500-$3,000)</h5>
-                <ul style="margin: 10px 0;">
+            <div style="
+                background: rgba(255,255,255,0.1);
+                padding: 1.5rem;
+                border-radius: 12px;
+                border: 1px solid rgba(255,255,255,0.1);
+            ">
+                <h5 style="
+                    font-weight: 600;
+                    margin: 0 0 1rem 0;
+                    color: #e2e8f0;
+                    font-size: 1.1rem;
+                ">Medium Priority (CLV $1,500-$3,000)</h5>
+                <ul style="
+                    margin: 0;
+                    padding-left: 1.2rem;
+                    line-height: 1.8;
+                    color: #f1f5f9;
+                ">
                     <li>Regular satisfaction surveys</li>
                     <li>Targeted retention offers</li>
                     <li>Service upgrade recommendations</li>
@@ -1340,7 +1741,7 @@ with tabs[2]:
     st.markdown("---")
     
     # 📊 CLV Distribution Analysis - Simplified
-    st.subheader("Customer Lifetime Value Analysis")
+    st.markdown('<h3 class="subsection-header">Customer Lifetime Value Analysis</h3>', unsafe_allow_html=True)
     
     clv_col1, clv_col2 = st.columns(2)
     
