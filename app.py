@@ -1559,7 +1559,7 @@ with tabs[2]:
             </h4>
             <ul style="
                 font-family: 'Inter', sans-serif;
-                color: #475569;
+                color: #f1f5f9;
                 line-height: 1.8;
                 margin: 0;
                 padding-left: 1.2rem;
@@ -1602,7 +1602,7 @@ with tabs[2]:
             </h4>
             <ul style="
                 font-family: 'Inter', sans-serif;
-                color: #475569;
+                color: #f1f5f9;
                 line-height: 1.8;
                 margin: 0;
                 padding-left: 1.2rem;
@@ -1645,7 +1645,7 @@ with tabs[2]:
             </h4>
             <ul style="
                 font-family: 'Inter', sans-serif;
-                color: #475569;
+                color: #f1f5f9;
                 line-height: 1.8;
                 margin: 0;
                 padding-left: 1.2rem;
