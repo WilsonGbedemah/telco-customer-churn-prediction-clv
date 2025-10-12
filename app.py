@@ -646,14 +646,20 @@ with tabs[0]:
     Enter customer details below to get instant predictions with AI-powered explanations.
     """)
     
-    col1, col2 = st.columns([1, 2])
-
-    with col1:
-        st.markdown('<h3 class="subsection-header">Customer Profile</h3>', unsafe_allow_html=True)
-        
-        # Demographic Information
-        st.markdown("**👤 Demographics**")
-        st.caption("Basic customer information")
+    st.markdown('<h3 class="subsection-header">Customer Profile</h3>', unsafe_allow_html=True)
+    st.markdown("Enter customer details below to predict churn risk")
+    
+    # Create grid layout for input fields with professional bordered containers
+    profile_col1, profile_col2, profile_col3 = st.columns(3, gap="medium")
+    
+    with profile_col1:
+        # Demographic Information Container
+        st.markdown("""
+        <div style="border: 2px solid #475569; border-radius: 12px; padding: 20px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            <h4 style="color: #60a5fa; margin-top: 0; margin-bottom: 15px; font-size: 1.2em; border-bottom: 2px solid #475569; padding-bottom: 10px;">👤 Demographics</h4>
+            <p style="color: #94a3b8; font-size: 0.9em; margin-bottom: 15px;">Basic customer information</p>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Use populated values if available, otherwise use defaults
         gender_default = st.session_state.get('populate_gender', "Male")
@@ -671,12 +677,15 @@ with tabs[0]:
         dependents_default = st.session_state.get('populate_dependents', "No")
         dependents_index = 0 if dependents_default == "No" else 1
         dependents = st.selectbox("Has Dependents", ["No", "Yes"], index=dependents_index)
-        
-        st.markdown("---")
-        
-        # Account Information
-        st.markdown("**Account Details**")
-        st.caption("Contract and billing information")
+    
+    with profile_col2:
+        # Account Information Container
+        st.markdown("""
+        <div style="border: 2px solid #475569; border-radius: 12px; padding: 20px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            <h4 style="color: #a78bfa; margin-top: 0; margin-bottom: 15px; font-size: 1.2em; border-bottom: 2px solid #475569; padding-bottom: 10px;">💳 Account Details</h4>
+            <p style="color: #94a3b8; font-size: 0.9em; margin-bottom: 15px;">Contract and billing information</p>
+        </div>
+        """, unsafe_allow_html=True)
         
         contract_default = st.session_state.get('populate_contract', 'Month-to-month')
         contract_options = ['Month-to-month', 'One year', 'Two year']
@@ -705,12 +714,15 @@ with tabs[0]:
         payment_options = ["Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"]
         payment_index = payment_options.index(payment_method_default) if payment_method_default in payment_options else 0
         payment_method = st.selectbox("Payment Method", payment_options, index=payment_index)
-        
-        st.markdown("---")
-        
-        # Services Information  
-        st.markdown("**Services**")
-        st.caption("Communication and internet services")
+    
+    with profile_col3:
+        # Services Information Container
+        st.markdown("""
+        <div style="border: 2px solid #475569; border-radius: 12px; padding: 20px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            <h4 style="color: #34d399; margin-top: 0; margin-bottom: 15px; font-size: 1.2em; border-bottom: 2px solid #475569; padding-bottom: 10px;">📡 Services</h4>
+            <p style="color: #94a3b8; font-size: 0.9em; margin-bottom: 15px;">Communication and internet services</p>
+        </div>
+        """, unsafe_allow_html=True)
         
         phone_service_default = st.session_state.get('populate_phone_service', "No")
         phone_service_index = 0 if phone_service_default == "No" else 1
@@ -754,323 +766,340 @@ with tabs[0]:
             streaming_movies = st.selectbox("Streaming Movies", ["No", "Yes"], index=streaming_movies_index)
         else:
             online_security = online_backup = device_protection = tech_support = streaming_tv = streaming_movies = "No internet service"
-        
-        model_choice_predict = st.selectbox("🤖 Prediction Model", 
-                                          ['Logistic Regression', 'Random Forest', 'XGBoost'], 
-                                          key='predict',
-                                          help="Choose the machine learning model for prediction")
-
-    with col2:
+    
+    # Model selection below the grid
+    st.markdown("---")
+    model_choice_predict = st.selectbox("🤖 Select Prediction Model", 
+                                      ['Logistic Regression', 'Random Forest', 'XGBoost'], 
+                                      key='predict',
+                                      help="Choose the machine learning model for prediction")
+    
+    # Predict button centered and prominent
+    col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+    with col_btn2:
+        predict_button = st.button("🔮 Predict Churn Risk", use_container_width=True, type="primary")
+    
+    # Display results in grid containers when button is clicked
+    if predict_button:
+        st.markdown("---")
         st.markdown('<h3 class="subsection-header">Prediction Results</h3>', unsafe_allow_html=True)
         
-        if st.button("🔮 Predict Churn Risk", width='stretch', type="primary"):
-            # Create input dataframe with all features
-            input_df = pd.DataFrame(columns=X_test.columns)
-            input_df.loc[0] = 0
-            
-            # Basic features
-            input_df['SeniorCitizen'] = 1 if senior_citizen == "Yes" else 0
-            input_df['tenure'] = tenure
-            input_df['MonthlyCharges'] = monthly_charges
-            input_df['TotalCharges'] = total_charges
-            
-            # Categorical features (one-hot encoded)
-            input_df[f'gender_{gender}'] = 1
-            input_df[f'Partner_{partner}'] = 1
-            input_df[f'Dependents_{dependents}'] = 1
-            input_df[f'PhoneService_{phone_service}'] = 1
-            input_df[f'MultipleLines_{multiple_lines}'] = 1
-            input_df[f'Contract_{contract}'] = 1
-            input_df[f'PaperlessBilling_{paperless_billing}'] = 1
-            input_df[f'PaymentMethod_{payment_method}'] = 1
-            input_df[f'InternetService_{internet_service}'] = 1
-            
-            if internet_service != 'No':
-                input_df[f'OnlineSecurity_{online_security}'] = 1
-                input_df[f'OnlineBackup_{online_backup}'] = 1
-                input_df[f'DeviceProtection_{device_protection}'] = 1
-                input_df[f'TechSupport_{tech_support}'] = 1
-                input_df[f'StreamingTV_{streaming_tv}'] = 1
-                input_df[f'StreamingMovies_{streaming_movies}'] = 1
-            
-            # Count services properly (only when customer has them)
-            services = []
-            if phone_service == "Yes":
+        # Create input dataframe with all features
+        input_df = pd.DataFrame(columns=X_test.columns)
+        input_df.loc[0] = 0
+        
+        # Basic features
+        input_df['SeniorCitizen'] = 1 if senior_citizen == "Yes" else 0
+        input_df['tenure'] = tenure
+        input_df['MonthlyCharges'] = monthly_charges
+        input_df['TotalCharges'] = total_charges
+        
+        # Categorical features (one-hot encoded)
+        input_df[f'gender_{gender}'] = 1
+        input_df[f'Partner_{partner}'] = 1
+        input_df[f'Dependents_{dependents}'] = 1
+        input_df[f'PhoneService_{phone_service}'] = 1
+        input_df[f'MultipleLines_{multiple_lines}'] = 1
+        input_df[f'Contract_{contract}'] = 1
+        input_df[f'PaperlessBilling_{paperless_billing}'] = 1
+        input_df[f'PaymentMethod_{payment_method}'] = 1
+        input_df[f'InternetService_{internet_service}'] = 1
+        
+        if internet_service != 'No':
+            input_df[f'OnlineSecurity_{online_security}'] = 1
+            input_df[f'OnlineBackup_{online_backup}'] = 1
+            input_df[f'DeviceProtection_{device_protection}'] = 1
+            input_df[f'TechSupport_{tech_support}'] = 1
+            input_df[f'StreamingTV_{streaming_tv}'] = 1
+            input_df[f'StreamingMovies_{streaming_movies}'] = 1
+        
+        # Count services properly (only when customer has them)
+        services = []
+        if phone_service == "Yes":
+            services.append(1)
+        if internet_service != "No":
+            if online_security == "Yes":
                 services.append(1)
-            if internet_service != "No":
-                if online_security == "Yes":
-                    services.append(1)
-                if online_backup == "Yes":
-                    services.append(1)
-                if device_protection == "Yes":
-                    services.append(1)
-                if tech_support == "Yes":
-                    services.append(1)
-                if streaming_tv == "Yes":
-                    services.append(1)
-                if streaming_movies == "Yes":
-                    services.append(1)
-            
-            input_df['services_count'] = len(services)
-            
-            # Engineered features
-            input_df['monthly_to_total_ratio'] = monthly_charges / max(total_charges, 1)  # Avoid division by zero
-            input_df['internet_but_no_tech_support'] = 1 if (internet_service != "No" and tech_support == "No") else 0
-            
-            # Tenure buckets
-            if tenure <= 6:
-                pass  # 0-6m is the reference category (all zeros)
-            elif tenure <= 12:
-                input_df['tenure_bucket_6-12m'] = 1
-            elif tenure <= 24:
-                input_df['tenure_bucket_12-24m'] = 1
-            else:
-                input_df['tenure_bucket_24m+'] = 1
-            
-            model_name_map = {'Logistic Regression': 'logisticregression', 'Random Forest': 'randomforest', 'XGBoost': 'xgboost'}
-            model = models[model_name_map[model_choice_predict]]
+            if online_backup == "Yes":
+                services.append(1)
+            if device_protection == "Yes":
+                services.append(1)
+            if tech_support == "Yes":
+                services.append(1)
+            if streaming_tv == "Yes":
+                services.append(1)
+            if streaming_movies == "Yes":
+                services.append(1)
+        
+        input_df['services_count'] = len(services)
+        
+        # Engineered features
+        input_df['monthly_to_total_ratio'] = monthly_charges / max(total_charges, 1)  # Avoid division by zero
+        input_df['internet_but_no_tech_support'] = 1 if (internet_service != "No" and tech_support == "No") else 0
+        
+        # Tenure buckets
+        if tenure <= 6:
+            pass  # 0-6m is the reference category (all zeros)
+        elif tenure <= 12:
+            input_df['tenure_bucket_6-12m'] = 1
+        elif tenure <= 24:
+            input_df['tenure_bucket_12-24m'] = 1
+        else:
+            input_df['tenure_bucket_24m+'] = 1
+        
+        model_name_map = {'Logistic Regression': 'logisticregression', 'Random Forest': 'randomforest', 'XGBoost': 'xgboost'}
+        model = models[model_name_map[model_choice_predict]]
 
-            churn_prob = model.predict_proba(input_df[X_test.columns])[:, 1][0]
-            clv = monthly_charges * avg_tenure
-            segment, segment_color = get_customer_segment(churn_prob, clv)
+        churn_prob = model.predict_proba(input_df[X_test.columns])[:, 1][0]
+        clv = monthly_charges * avg_tenure
+        segment, segment_color = get_customer_segment(churn_prob, clv)
+        
+        # Calculate confidence metrics
+        confidence_data = calculate_model_confidence(model, input_df)
+        uncertainty = confidence_data['uncertainty']
+        certainty_level = confidence_data['certainty_level']
             
-            # Calculate confidence metrics
-            confidence_data = calculate_model_confidence(model, input_df)
-            uncertainty = confidence_data['uncertainty']
-            certainty_level = confidence_data['certainty_level']
-            
-            # Display main results with enhanced visuals
-            col_metric1, col_metric2, col_metric3 = st.columns(3)
-            
-            with col_metric1:
-                if churn_prob >= 0.5:
-                    risk_level = "HIGH RISK"
-                    risk_color = "#ff4444"
-                    risk_icon = "HIGH"
-                elif churn_prob >= 0.3:
-                    risk_level = "MEDIUM RISK" 
-                    risk_color = "#ffcc00"
-                    risk_icon = "!"
-                else:
-                    risk_level = "LOW RISK"
-                    risk_color = "#44aa44"
-                    risk_icon = "LOW"
-                
-                # Enhanced risk gauge with confidence
-                st.markdown(f"""
-                <div style="background: {risk_color}; color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 10px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                    <div style="font-size: 2em; margin-bottom: 10px;">{risk_icon}</div>
-                    <p style="margin: 0; font-size: 14px; opacity: 0.9;">Churn Probability</p>
-                    <h2 style="margin: 5px 0; font-size: 2.5em; font-weight: bold;">{churn_prob:.1%}</h2>
-                    <p style="margin: 0; font-size: 16px; font-weight: bold;">{risk_level}</p>
-                    <p style="margin: 5px 0; font-size: 12px; opacity: 0.8;">±{uncertainty:.1%} uncertainty</p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col_metric2:
-                # Enhanced CLV with context
-                clv_percentile = np.percentile([70 * avg_tenure, 100 * avg_tenure, 50 * avg_tenure], 50)
-                clv_status = "Above Average" if clv > clv_percentile else "Below Average"
-                clv_color = "#2e8b57" if clv > clv_percentile else "#cd853f"
-                
-                st.markdown(f"""
-                <div style="background: {clv_color}; color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 10px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                    <div style="font-size: 2em; margin-bottom: 10px;">$</div>
-                    <p style="margin: 0; font-size: 14px; opacity: 0.9;">Customer Lifetime Value</p>
-                    <h2 style="margin: 5px 0; font-size: 2.2em; font-weight: bold;">${clv:,.0f}</h2>
-                    <p style="margin: 0; font-size: 14px; font-weight: bold;">{clv_status}</p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col_metric3:
-                # Prediction confidence gauge
-                confidence_color = "#2e8b57" if certainty_level == "High" else "#ffcc00" if certainty_level == "Medium" else "#ff6b6b"
-                confidence_icon = "HIGH" if certainty_level == "High" else "MED" if certainty_level == "Medium" else "LOW"
-                
-                st.markdown(f"""
-                <div style="background: {confidence_color}; color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 10px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                    <div style="font-size: 2em; margin-bottom: 10px;">{confidence_icon}</div>
-                    <p style="margin: 0; font-size: 14px; opacity: 0.9;">Prediction Confidence</p>
-                    <h2 style="margin: 5px 0; font-size: 2.2em; font-weight: bold;">{certainty_level}</h2>
-                    <p style="margin: 0; font-size: 14px; font-weight: bold;">{(1-uncertainty)*100:.0f}% Certain</p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Customer segment
-            st.markdown(f"**Customer Segment:** <span style='color:{segment_color}'>{segment}</span>", 
-                       unsafe_allow_html=True)
-            
-            # Simplified Retention Strategies
-            st.markdown("### Recommended Retention Strategies")
-            customer_dict = input_df.to_dict('records')[0] if len(input_df) > 0 else {}
-            strategies = get_retention_strategy(churn_prob, clv, customer_dict)
-            
-            if strategies:
-                for strategy in strategies:
-                    st.markdown(f"• {strategy}")
-            
-            # Priority assessment
+        # Display main results in grid containers
+        st.markdown("**Key Metrics**")
+        col_metric1, col_metric2, col_metric3 = st.columns(3)
+        
+        with col_metric1:
             if churn_prob >= 0.5:
-                st.error("**HIGH PRIORITY**: Contact within 24 hours")
+                risk_level = "HIGH RISK"
+                risk_color = "#ff4444"
+                risk_icon = "HIGH"
             elif churn_prob >= 0.3:
-                st.warning("**MEDIUM PRIORITY**: Contact within 7 days")
+                risk_level = "MEDIUM RISK" 
+                risk_color = "#ffcc00"
+                risk_icon = "!"
             else:
-                st.success("**LOW PRIORITY**: Routine check-in")
-
-            # SHAP Explanation with Simple Insights
-            st.markdown("---")
-            st.markdown('<h3 class="subsection-header">Why This Prediction?</h3>', unsafe_allow_html=True)
-            st.markdown("Understanding which factors drive the churn prediction for this customer:")
+                risk_level = "LOW RISK"
+                risk_color = "#44aa44"
+                risk_icon = "LOW"
             
-            # Show SHAP chart first (technical analysis)
-            if SHAP_AVAILABLE:
-                explainer = get_shap_explainer(model_name_map[model_choice_predict], model, X_test.iloc[:100])
-                if explainer is not None:
-                    try:
-                        shap_values = explainer(input_df[X_test.columns])
-                        
-                        st.markdown("#### Technical Analysis (SHAP)")
-                        fig, ax = plt.subplots(figsize=(10, 6))
-                        shap.plots.waterfall(shap_values[0], max_display=10, show=False)
-                        st.pyplot(fig, bbox_inches='tight')
-                        
-                        with st.expander("📖 How to Read This Chart"):
-                            st.markdown("""
-                            - **Blue bars**: Features that DECREASE churn probability
-                            - **Red bars**: Features that INCREASE churn probability  
-                            - **Bar length**: How much each feature contributes to the prediction
-                            - **Base value**: Average churn rate for all customers
-                            - **Final prediction**: The actual probability for this customer
-                            """)
-                    except Exception as e:
-                        st.error(f"Unable to generate SHAP explanation: {str(e)}")
-                        _show_feature_importance_local(model, input_df, model_name_map[model_choice_predict], churn_prob)
+            # Enhanced risk gauge with confidence
+            st.markdown(f"""
+            <div style="background: {risk_color}; color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 10px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                <div style="font-size: 2em; margin-bottom: 10px;">{risk_icon}</div>
+                <p style="margin: 0; font-size: 14px; opacity: 0.9;">Churn Probability</p>
+                <h2 style="margin: 5px 0; font-size: 2.5em; font-weight: bold;">{churn_prob:.1%}</h2>
+                <p style="margin: 0; font-size: 16px; font-weight: bold;">{risk_level}</p>
+                <p style="margin: 5px 0; font-size: 12px; opacity: 0.8;">±{uncertainty:.1%} uncertainty</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col_metric2:
+            # Enhanced CLV with context
+            clv_percentile = np.percentile([70 * avg_tenure, 100 * avg_tenure, 50 * avg_tenure], 50)
+            clv_status = "Above Average" if clv > clv_percentile else "Below Average"
+            clv_color = "#2e8b57" if clv > clv_percentile else "#cd853f"
+            
+            st.markdown(f"""
+            <div style="background: {clv_color}; color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 10px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                <div style="font-size: 2em; margin-bottom: 10px;">$</div>
+                <p style="margin: 0; font-size: 14px; opacity: 0.9;">Customer Lifetime Value</p>
+                <h2 style="margin: 5px 0; font-size: 2.2em; font-weight: bold;">${clv:,.0f}</h2>
+                <p style="margin: 0; font-size: 14px; font-weight: bold;">{clv_status}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col_metric3:
+            # Prediction confidence gauge
+            confidence_color = "#2e8b57" if certainty_level == "High" else "#ffcc00" if certainty_level == "Medium" else "#ff6b6b"
+            confidence_icon = "HIGH" if certainty_level == "High" else "MED" if certainty_level == "Medium" else "LOW"
+            
+            st.markdown(f"""
+            <div style="background: {confidence_color}; color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 10px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                <div style="font-size: 2em; margin-bottom: 10px;">{confidence_icon}</div>
+                <p style="margin: 0; font-size: 14px; opacity: 0.9;">Prediction Confidence</p>
+                <h2 style="margin: 5px 0; font-size: 2.2em; font-weight: bold;">{certainty_level}</h2>
+                <p style="margin: 0; font-size: 14px; font-weight: bold;">{(1-uncertainty)*100:.0f}% Certain</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Customer segment in a container
+        st.markdown("---")
+        st.markdown("**Customer Segment**")
+        st.markdown(f"<span style='color:{segment_color}; font-size:1.2em; font-weight:bold;'>{segment}</span>", 
+                   unsafe_allow_html=True)
+        
+        # Retention Strategies in a grid container
+        st.markdown("---")
+        st.markdown("**Recommended Retention Strategies**")
+        customer_dict = input_df.to_dict('records')[0] if len(input_df) > 0 else {}
+        strategies = get_retention_strategy(churn_prob, clv, customer_dict)
+        
+        if strategies:
+            strat_col1, strat_col2 = st.columns(2)
+            for idx, strategy in enumerate(strategies):
+                if idx % 2 == 0:
+                    strat_col1.markdown(f"• {strategy}")
                 else:
+                    strat_col2.markdown(f"• {strategy}")
+        
+        # Priority assessment in a prominent container
+        st.markdown("---")
+        if churn_prob >= 0.5:
+            st.error("**HIGH PRIORITY**: Contact within 24 hours")
+        elif churn_prob >= 0.3:
+            st.warning("**MEDIUM PRIORITY**: Contact within 7 days")
+        else:
+            st.success("**LOW PRIORITY**: Routine check-in")
+
+        # SHAP Explanation with Simple Insights
+        st.markdown("---")
+        st.markdown('<h3 class="subsection-header">Why This Prediction?</h3>', unsafe_allow_html=True)
+        st.markdown("Understanding which factors drive the churn prediction for this customer:")
+        
+        # Show SHAP chart first (technical analysis)
+        if SHAP_AVAILABLE:
+            explainer = get_shap_explainer(model_name_map[model_choice_predict], model, X_test.iloc[:100])
+            if explainer is not None:
+                try:
+                    shap_values = explainer(input_df[X_test.columns])
+                    
+                    st.markdown("#### Technical Analysis (SHAP)")
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    shap.plots.waterfall(shap_values[0], max_display=10, show=False)
+                    st.pyplot(fig, bbox_inches='tight')
+                    
+                    with st.expander("📖 How to Read This Chart"):
+                        st.markdown("""
+                        - **Blue bars**: Features that DECREASE churn probability
+                        - **Red bars**: Features that INCREASE churn probability  
+                        - **Bar length**: How much each feature contributes to the prediction
+                        - **Base value**: Average churn rate for all customers
+                        - **Final prediction**: The actual probability for this customer
+                        """)
+                except Exception as e:
+                    st.error(f"Unable to generate SHAP explanation: {str(e)}")
                     _show_feature_importance_local(model, input_df, model_name_map[model_choice_predict], churn_prob)
             else:
                 _show_feature_importance_local(model, input_df, model_name_map[model_choice_predict], churn_prob)
-            
-            # Add separator
-            st.markdown("---")
-            
-            # Simple Business Insights (underneath the technical chart)
-            st.markdown("#### Business Insights")
-            st.markdown("Key factors that influenced this prediction in simple terms:")
-            
-            # Create a simple, understandable explanation
-            if churn_prob >= 0.5:
-                risk_level = "High Risk"
-                risk_color = "#ff4444"
-            elif churn_prob >= 0.3:
-                risk_level = "Medium Risk"
-                risk_color = "#ffcc00"
-            else:
-                risk_level = "Low Risk"
-                risk_color = "#44aa44"
-            
-            # Risk indicator
-            st.markdown(f"""
-            <div style="background: {risk_color}; color: white; padding: 15px; border-radius: 10px; text-align: center; margin: 10px 0;">
-                <h3 style="margin: 0;">Customer Risk Level: {risk_level}</h3>
-                <p style="margin: 5px 0; font-size: 1.1em;">Churn Probability: {churn_prob:.1%}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Simple explanation based on input values
-            explanations = []
-            
-            # Tenure analysis
-            if input_df['tenure'].iloc[0] <= 12:
-                explanations.append("**New Customer**: Short tenure (≤12 months) increases churn risk")
-            elif input_df['tenure'].iloc[0] >= 60:
-                explanations.append("**Loyal Customer**: Long tenure (≥5 years) reduces churn risk")
-            
-            # Contract analysis
-            if input_df['Contract_One year'].iloc[0] == 0 and input_df['Contract_Two year'].iloc[0] == 0:
-                explanations.append("**Month-to-Month Contract**: No long-term commitment increases risk")
-            elif input_df['Contract_Two year'].iloc[0] == 1:
-                explanations.append("**Two-Year Contract**: Long-term commitment reduces churn risk")
-            
-            # Payment method analysis
-            if input_df['PaymentMethod_Electronic check'].iloc[0] == 1:
-                explanations.append("**Electronic Check Payment**: This payment method shows higher churn rates")
-            elif input_df['PaymentMethod_Credit card (automatic)'].iloc[0] == 1:
-                explanations.append("**Automatic Credit Card**: Convenient payment reduces churn risk")
-            
-            # Monthly charges analysis
-            monthly_charges = input_df['MonthlyCharges'].iloc[0]
-            if monthly_charges > 80:
-                explanations.append("**High Monthly Charges**: Premium pricing may increase churn risk")
-            elif monthly_charges < 35:
-                explanations.append("**Affordable Pricing**: Lower charges reduce churn likelihood")
-            
-            # Internet service analysis
-            if input_df['InternetService_Fiber optic'].iloc[0] == 1:
-                explanations.append("**Fiber Optic Service**: Higher churn rates observed with this service")
-            elif input_df['InternetService_No'].iloc[0] == 1:
-                explanations.append("**No Internet Service**: Different risk profile than internet customers")
-            
-            # Senior citizen analysis
-            if input_df['SeniorCitizen'].iloc[0] == 1:
-                explanations.append("**Senior Citizen**: Age demographics may influence loyalty patterns")
-            
-            # Display explanations
-            if explanations:
-                for explanation in explanations:
-                    st.markdown(f"• {explanation}")
-            else:
-                st.markdown("• **Balanced Profile**: Customer shows mixed indicators")
-            
-            # Action recommendations
-            st.markdown("#### 🎯 Recommended Actions")
-            
-            if churn_prob >= 0.5:
-                st.error("""
-                **High Risk - Immediate Action Required:**
-                • Contact customer within 24 hours
-                • Offer retention incentives or discounts
-                • Consider contract upgrade options
-                • Review service satisfaction
-                """)
-            elif churn_prob >= 0.3:
-                st.warning("""
-                **Medium Risk - Proactive Engagement:**
-                • Send personalized retention offer
-                • Survey customer satisfaction
-                • Highlight service benefits
-                • Consider loyalty program enrollment
-                """)
-            else:
-                st.success("""
-                **Low Risk - Maintain Relationship:**
-                • Continue excellent service
-                • Consider upselling opportunities
-                • Recognize loyalty with rewards
-                • Monitor for any changes
-                """)
+        else:
+            _show_feature_importance_local(model, input_df, model_name_map[model_choice_predict], churn_prob)
+        
+        # Add separator
+        st.markdown("---")
+        
+        # Simple Business Insights (underneath the technical chart)
+        st.markdown("#### Business Insights")
+        st.markdown("Key factors that influenced this prediction in simple terms:")
+        
+        # Create a simple, understandable explanation
+        if churn_prob >= 0.5:
+            risk_level = "High Risk"
+            risk_color = "#ff4444"
+        elif churn_prob >= 0.3:
+            risk_level = "Medium Risk"
+            risk_color = "#ffcc00"
+        else:
+            risk_level = "Low Risk"
+            risk_color = "#44aa44"
+        
+        # Risk indicator
+        st.markdown(f"""
+        <div style="background: {risk_color}; color: white; padding: 15px; border-radius: 10px; text-align: center; margin: 10px 0;">
+            <h3 style="margin: 0;">Customer Risk Level: {risk_level}</h3>
+            <p style="margin: 5px 0; font-size: 1.1em;">Churn Probability: {churn_prob:.1%}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Simple explanation based on input values
+        explanations = []
+        
+        # Tenure analysis
+        if input_df['tenure'].iloc[0] <= 12:
+            explanations.append("**New Customer**: Short tenure (≤12 months) increases churn risk")
+        elif input_df['tenure'].iloc[0] >= 60:
+            explanations.append("**Loyal Customer**: Long tenure (≥5 years) reduces churn risk")
+        
+        # Contract analysis
+        if input_df['Contract_One year'].iloc[0] == 0 and input_df['Contract_Two year'].iloc[0] == 0:
+            explanations.append("**Month-to-Month Contract**: No long-term commitment increases risk")
+        elif input_df['Contract_Two year'].iloc[0] == 1:
+            explanations.append("**Two-Year Contract**: Long-term commitment reduces churn risk")
+        
+        # Payment method analysis
+        if input_df['PaymentMethod_Electronic check'].iloc[0] == 1:
+            explanations.append("**Electronic Check Payment**: This payment method shows higher churn rates")
+        elif input_df['PaymentMethod_Credit card (automatic)'].iloc[0] == 1:
+            explanations.append("**Automatic Credit Card**: Convenient payment reduces churn risk")
+        
+        # Monthly charges analysis
+        monthly_charges = input_df['MonthlyCharges'].iloc[0]
+        if monthly_charges > 80:
+            explanations.append("**High Monthly Charges**: Premium pricing may increase churn risk")
+        elif monthly_charges < 35:
+            explanations.append("**Affordable Pricing**: Lower charges reduce churn likelihood")
+        
+        # Internet service analysis
+        if input_df['InternetService_Fiber optic'].iloc[0] == 1:
+            explanations.append("**Fiber Optic Service**: Higher churn rates observed with this service")
+        elif input_df['InternetService_No'].iloc[0] == 1:
+            explanations.append("**No Internet Service**: Different risk profile than internet customers")
+        
+        # Senior citizen analysis
+        if input_df['SeniorCitizen'].iloc[0] == 1:
+            explanations.append("**Senior Citizen**: Age demographics may influence loyalty patterns")
+        
+        # Display explanations
+        if explanations:
+            for explanation in explanations:
+                st.markdown(f"• {explanation}")
+        else:
+            st.markdown("• **Balanced Profile**: Customer shows mixed indicators")
+        
+        # Action recommendations
+        st.markdown("#### 🎯 Recommended Actions")
+        
+        if churn_prob >= 0.5:
+            st.error("""
+            **High Risk - Immediate Action Required:**
+            • Contact customer within 24 hours
+            • Offer retention incentives or discounts
+            • Consider contract upgrade options
+            • Review service satisfaction
+            """)
+        elif churn_prob >= 0.3:
+            st.warning("""
+            **Medium Risk - Proactive Engagement:**
+            • Send personalized retention offer
+            • Survey customer satisfaction
+            • Highlight service benefits
+            • Consider loyalty program enrollment
+            """)
+        else:
+            st.success("""
+            **Low Risk - Maintain Relationship:**
+            • Continue excellent service
+            • Consider upselling opportunities
+            • Recognize loyalty with rewards
+            • Monitor for any changes
+            """)
 
-            # --- NEW: 4 Easy Interactive Features ---
-            st.markdown("---")
-            
-            # Feature 1: Model Confidence Indicator
-            st.markdown('<h3 class="subsection-header">Model Confidence Analysis</h3>', unsafe_allow_html=True)
-            
-            confidence_data = calculate_model_confidence(model, input_df)
-            
-            conf_col1, conf_col2, conf_col3 = st.columns(3)
-            with conf_col1:
-                st.metric("Prediction", f"{churn_prob:.1%}")
-            with conf_col2:
-                st.metric("Confidence Level", confidence_data['certainty_level'])
-            with conf_col3:
-                st.metric("Uncertainty Range", f"±{confidence_data['uncertainty']:.1%}")
-            
-            # Confidence explanation
-            with st.expander("Understanding Model Confidence"):
-                st.markdown(f"""
-                **Confidence Analysis:**
-                - **Main Prediction**: {churn_prob:.1%}
-                - **Confidence Range**: {confidence_data['confidence_interval'][0]:.1%} - {confidence_data['confidence_interval'][1]:.1%}
+        # --- NEW: 4 Easy Interactive Features ---
+        st.markdown("---")
+        
+        # Feature 1: Model Confidence Indicator
+        st.markdown('<h3 class="subsection-header">Model Confidence Analysis</h3>', unsafe_allow_html=True)
+        
+        confidence_data = calculate_model_confidence(model, input_df)
+        
+        conf_col1, conf_col2, conf_col3 = st.columns(3)
+        with conf_col1:
+            st.metric("Prediction", f"{churn_prob:.1%}")
+        with conf_col2:
+            st.metric("Confidence Level", confidence_data['certainty_level'])
+        with conf_col3:
+            st.metric("Uncertainty Range", f"±{confidence_data['uncertainty']:.1%}")
+        
+        # Confidence explanation
+        with st.expander("Understanding Model Confidence"):
+            st.markdown(f"""
+            **Confidence Analysis:**
+            - **Main Prediction**: {churn_prob:.1%}
+            - **Confidence Range**: {confidence_data['confidence_interval'][0]:.1%} - {confidence_data['confidence_interval'][1]:.1%}
                 - **Model Certainty**: {confidence_data['certainty_level']}
                 
                 **What this means:**
