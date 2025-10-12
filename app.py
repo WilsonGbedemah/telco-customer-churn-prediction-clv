@@ -10,7 +10,8 @@ import joblib
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-from sklearn.metrics import roc_curve, roc_auc_score
+from sklearn.metrics import roc_curve, roc_auc_score, confusion_matrix
+import seaborn as sns
 
 # Add src to path to import config
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
@@ -1343,7 +1344,177 @@ with tabs[1]:
     
     st.markdown("---")
     
-    # ROC Curve Analysis (Full Width, Below Feature Importance)
+    # Confusion Matrix Analysis
+    st.markdown('<h3 class="subsection-header">Confusion Matrix Analysis</h3>', unsafe_allow_html=True)
+    st.markdown("Detailed breakdown of model predictions vs actual outcomes - understanding classification accuracy.")
+    
+    model_choice_cm = st.selectbox(
+        "Select Model for Confusion Matrix", 
+        ["Logistic Regression", "Random Forest", "XGBoost", "ALL"],
+        key="confusion_matrix_model"
+    )
+    
+    # Map display names to model names
+    model_name_map_cm = {
+        'Logistic Regression': 'logisticregression',
+        'Random Forest': 'randomforest',
+        'XGBoost': 'xgboost'
+    }
+    
+    if model_choice_cm == "ALL":
+        # Display confusion matrices for all models
+        st.markdown("**Confusion Matrices for All Models**")
+        
+        cols = st.columns(3)
+        
+        for idx, (display_name, model_key) in enumerate(model_name_map_cm.items()):
+            if model_key in models:
+                model = models[model_key]
+                
+                # Get predictions
+                y_pred = model.predict(X_test)
+                
+                # Calculate confusion matrix
+                cm = confusion_matrix(y_test, y_pred)
+                
+                with cols[idx]:
+                    st.markdown(f"**{display_name}**")
+                    
+                    # Create confusion matrix plot
+                    fig, ax = plt.subplots(figsize=(6, 5))
+                    
+                    # Use a professional color scheme
+                    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+                               cbar_kws={'label': 'Count'},
+                               ax=ax, linewidths=1, linecolor='gray',
+                               annot_kws={'size': 14, 'weight': 'bold'})
+                    
+                    ax.set_xlabel('Predicted Label', fontsize=11, fontweight='bold')
+                    ax.set_ylabel('True Label', fontsize=11, fontweight='bold')
+                    ax.set_title(f'{display_name}\nConfusion Matrix', 
+                               fontsize=12, fontweight='bold', pad=15)
+                    ax.set_xticklabels(['No Churn (0)', 'Churn (1)'], fontsize=10)
+                    ax.set_yticklabels(['No Churn (0)', 'Churn (1)'], fontsize=10, rotation=0)
+                    
+                    plt.tight_layout()
+                    st.pyplot(fig, bbox_inches='tight')
+                    plt.close()
+                    
+                    # Calculate metrics
+                    tn, fp, fn, tp = cm.ravel()
+                    accuracy = (tp + tn) / (tp + tn + fp + fn)
+                    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+                    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+                    
+                    st.markdown(f"""
+                    - **Accuracy**: {accuracy:.2%}
+                    - **Precision**: {precision:.2%}
+                    - **Recall**: {recall:.2%}
+                    """)
+    else:
+        # Display single model confusion matrix
+        model_key_cm = model_name_map_cm[model_choice_cm]
+        
+        if model_key_cm in models:
+            model = models[model_key_cm]
+            
+            # Get predictions
+            y_pred = model.predict(X_test)
+            
+            # Calculate confusion matrix
+            cm = confusion_matrix(y_test, y_pred)
+            
+            col_cm1, col_cm2 = st.columns([1.5, 1])
+            
+            with col_cm1:
+                # Create detailed confusion matrix plot
+                fig, ax = plt.subplots(figsize=(10, 8))
+                
+                # Use a professional color scheme
+                sns.heatmap(cm, annot=True, fmt='d', cmap='RdYlGn_r', 
+                           cbar_kws={'label': 'Number of Predictions'},
+                           ax=ax, linewidths=2, linecolor='black',
+                           annot_kws={'size': 20, 'weight': 'bold'})
+                
+                ax.set_xlabel('Predicted Label', fontsize=14, fontweight='bold')
+                ax.set_ylabel('True Label', fontsize=14, fontweight='bold')
+                ax.set_title(f'{model_choice_cm} - Confusion Matrix', 
+                           fontsize=16, fontweight='bold', pad=20)
+                ax.set_xticklabels(['No Churn (0)', 'Churn (1)'], fontsize=12)
+                ax.set_yticklabels(['No Churn (0)', 'Churn (1)'], fontsize=12, rotation=0)
+                
+                plt.tight_layout()
+                st.pyplot(fig, bbox_inches='tight')
+                plt.close()
+            
+            with col_cm2:
+                # Calculate and display metrics
+                tn, fp, fn, tp = cm.ravel()
+                
+                total = tp + tn + fp + fn
+                accuracy = (tp + tn) / total
+                precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+                recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+                specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
+                f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+                
+                st.markdown("**Confusion Matrix Breakdown**")
+                
+                st.metric("True Negatives (TN)", f"{tn:,}", 
+                         help="Correctly predicted No Churn")
+                st.metric("False Positives (FP)", f"{fp:,}", 
+                         help="Incorrectly predicted Churn")
+                st.metric("False Negatives (FN)", f"{fn:,}", 
+                         help="Missed Churn cases")
+                st.metric("True Positives (TP)", f"{tp:,}", 
+                         help="Correctly predicted Churn")
+                
+                st.markdown("---")
+                st.markdown("**Performance Metrics**")
+                
+                st.metric("Accuracy", f"{accuracy:.2%}", 
+                         help="Overall correct predictions")
+                st.metric("Precision", f"{precision:.2%}", 
+                         help="Of predicted churners, % actually churned")
+                st.metric("Recall (Sensitivity)", f"{recall:.2%}", 
+                         help="Of actual churners, % correctly identified")
+                st.metric("Specificity", f"{specificity:.2%}", 
+                         help="Of actual non-churners, % correctly identified")
+                st.metric("F1-Score", f"{f1_score:.2%}", 
+                         help="Harmonic mean of precision and recall")
+        else:
+            st.error(f"Model {model_choice_cm} not found!")
+    
+    # Interpretation guide
+    with st.expander("📚 Understanding the Confusion Matrix"):
+        st.markdown("""
+        **What is a Confusion Matrix?**
+        
+        A confusion matrix shows the performance of a classification model by comparing actual vs predicted outcomes:
+        
+        - **True Negatives (TN)**: Customers correctly predicted as NOT churning ✅
+        - **False Positives (FP)**: Customers incorrectly predicted as churning ⚠️
+        - **False Negatives (FN)**: Customers who churned but were predicted as staying 🚨
+        - **True Positives (TP)**: Customers correctly predicted as churning ✅
+        
+        **Key Metrics:**
+        
+        - **Accuracy**: Overall percentage of correct predictions (TP + TN) / Total
+        - **Precision**: Of all predicted churners, how many actually churned? TP / (TP + FP)
+        - **Recall (Sensitivity)**: Of all actual churners, how many did we catch? TP / (TP + FN)
+        - **Specificity**: Of all non-churners, how many did we correctly identify? TN / (TN + FP)
+        - **F1-Score**: Balanced metric combining precision and recall
+        
+        **Business Implications:**
+        
+        - **High False Positives**: Wasting resources on customers who won't churn
+        - **High False Negatives**: Missing customers who need retention efforts (most costly!)
+        - **Goal**: Minimize False Negatives while maintaining reasonable precision
+        """)
+    
+    st.markdown("---")
+    
+    # ROC Curve Analysis (Full Width, Below Confusion Matrix)
     st.markdown('<h3 class="subsection-header">ROC Curve Analysis</h3>', unsafe_allow_html=True)
     st.markdown("Evaluating model discrimination ability - how well each model distinguishes between churners and non-churners.")
     
