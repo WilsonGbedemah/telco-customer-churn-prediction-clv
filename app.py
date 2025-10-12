@@ -1460,28 +1460,46 @@ with tabs[1]:
                 
                 st.markdown("**Confusion Matrix Breakdown**")
                 
-                st.metric("True Negatives (TN)", f"{tn:,}", 
-                         help="Correctly predicted No Churn")
-                st.metric("False Positives (FP)", f"{fp:,}", 
-                         help="Incorrectly predicted Churn")
-                st.metric("False Negatives (FN)", f"{fn:,}", 
-                         help="Missed Churn cases")
-                st.metric("True Positives (TP)", f"{tp:,}", 
-                         help="Correctly predicted Churn")
+                # 2x2 grid for confusion matrix values
+                cm_row1_col1, cm_row1_col2 = st.columns(2)
+                cm_row2_col1, cm_row2_col2 = st.columns(2)
+                
+                with cm_row1_col1:
+                    st.metric("True Negatives (TN)", f"{tn:,}", 
+                             help="Correctly predicted No Churn")
+                with cm_row1_col2:
+                    st.metric("False Positives (FP)", f"{fp:,}", 
+                             help="Incorrectly predicted Churn")
+                with cm_row2_col1:
+                    st.metric("False Negatives (FN)", f"{fn:,}", 
+                             help="Missed Churn cases")
+                with cm_row2_col2:
+                    st.metric("True Positives (TP)", f"{tp:,}", 
+                             help="Correctly predicted Churn")
                 
                 st.markdown("---")
                 st.markdown("**Performance Metrics**")
                 
-                st.metric("Accuracy", f"{accuracy:.2%}", 
-                         help="Overall correct predictions")
-                st.metric("Precision", f"{precision:.2%}", 
-                         help="Of predicted churners, % actually churned")
-                st.metric("Recall (Sensitivity)", f"{recall:.2%}", 
-                         help="Of actual churners, % correctly identified")
-                st.metric("Specificity", f"{specificity:.2%}", 
-                         help="Of actual non-churners, % correctly identified")
-                st.metric("F1-Score", f"{f1_score:.2%}", 
-                         help="Harmonic mean of precision and recall")
+                # 2x3 grid for performance metrics (2 columns, 3 rows)
+                perf_row1_col1, perf_row1_col2 = st.columns(2)
+                perf_row2_col1, perf_row2_col2 = st.columns(2)
+                perf_row3_col1, perf_row3_col2 = st.columns(2)
+                
+                with perf_row1_col1:
+                    st.metric("Accuracy", f"{accuracy:.2%}", 
+                             help="Overall correct predictions")
+                with perf_row1_col2:
+                    st.metric("Precision", f"{precision:.2%}", 
+                             help="Of predicted churners, % actually churned")
+                with perf_row2_col1:
+                    st.metric("Recall", f"{recall:.2%}", 
+                             help="Of actual churners, % correctly identified")
+                with perf_row2_col2:
+                    st.metric("Specificity", f"{specificity:.2%}", 
+                             help="Of actual non-churners, % correctly identified")
+                with perf_row3_col1:
+                    st.metric("F1-Score", f"{f1_score:.2%}", 
+                             help="Harmonic mean of precision and recall")
         else:
             st.error(f"Model {model_choice_cm} not found!")
     
