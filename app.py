@@ -1303,7 +1303,7 @@ with tabs[1]:
         else:  # XGBoost
             interpretation = "Higher scores = greater contribution to gradient boosting decisions"
         
-        ax.text(0.02, 0.98, f'💡 {interpretation}', transform=ax.transAxes, 
+        ax.text(0.02, 0.98, f'Insight: {interpretation}', transform=ax.transAxes, 
                fontsize=10, verticalalignment='top', 
                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
         
